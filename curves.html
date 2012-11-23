@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #eee;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="vector.js"></script>
+    <script>
+    (function() {
+      var canvas = document.querySelector('#canvas');
+      var c = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var start = [random(200, canvas.width - 200), random(200, canvas.height - 200)];
+
+      c.translate(start[0], start[1]);
+      c.fillStyle = 'rgba(0,0,0,.9)';
+      c.strokeStyle = 'rgba(0,0,0,.4)';
+
+      var p = new Vector(0, 0);
+      var np = new Vector(0, 0);
+      var cp = new Vector(0, 0);
+
+      var m = 30;
+
+      var rEdge = canvas.width - start[0];
+      var lEdge = -start[0]
+      var bEdge = canvas.height - start[1];
+      var tEdge = -start[1];
+
+      var x1, x2, y1, y2;
+
+      var size = 1;
+
+      x1 = -m, x2 = m, y1 = -m, y2 = m;
+
+      c.beginPath();
+      c.moveTo(0,0);
+
+      function draw() {
+
+        np.x = random(x1, x2);
+        np.y = random(y1, y2);
+        
+        if (Math.abs(np.x) < 5 || Math.abs(np.y) < 5) {
+          return;
+        }
+
+        //c.clearRect(-start[0], -start[1], canvas.width, canvas.height);
+
+        size += random(-1, 1) / 10;
+
+        size = size < 1 ? 1 : size;
+        size = size > 2 ? 2 : size;
+
+        c.lineWidth = size;
+
+        if (p.x >= rEdge) {
+          p.x = rEdge;
+        }
+
+        if (p.x <= lEdge) {
+          p.x = lEdge;
+        }
+
+        if (p.y >= bEdge) {
+          p.y = bEdge;
+        }
+
+        if (p.y < tEdge) {
+          p.y = tEdge;
+        }
+
+        p.add(np);
+
+        c.save();
+
+        c.translate(p.x, p.y);
+
+        cp.x = -np.x / 2;
+        cp.y = -np.y / 2;
+
+        //c.fillRect(cp.x,cp.y,2,2);
+        //c.lineTo(0,0);
+        c.quadraticCurveTo(-np.x, -np.y, cp.x, cp.y);
+        c.stroke();
+        c.closePath();
+        c.beginPath();
+        c.moveTo(cp.x, cp.y);
+        c.restore();
+      }
+
+      function random(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+      }
+
+      var i = 0;
+      (function frame() {
+        //if (i >= 50) {
+          draw();
+        //  i = 0;
+        //}
+        //i++;
+        //console.log(i);
+        webkitRequestAnimationFrame(frame);
+      })();
+
+    })();
+    </script>
+  </body>
+</html>
