@@ -16,20 +16,20 @@ Particle.G = 1;
 Particle.prototype.setPosition = function(x, y) {
   this.position.x = x;
   this.position.y = y;
-}
+};
 
 Particle.prototype.setVelocity = function(x, y) {
   this.velocity.x = x;
   this.velocity.y = y;
-}
+};
 
 Particle.prototype.addForce = function(force) {
   this.velocity.add(force);
 
-  if (this.velocity.magnitude() > 25) {
+  if (this.velocity.magnitude() > 50) {
     this.velocity.div(2);
   }
-}
+};
 
 Particle.prototype.update = function(ctx) {
   this.position.add(this.velocity);
@@ -62,17 +62,17 @@ Particle.prototype.draw = function(ctx) {
   ctx.closePath();
   ctx.fill();
   ctx.restore();
-}
+};
 
 Particle.prototype.attract = function(mover) {
   var force = Vector.sub(this.position, mover.position);
   var distance = force.magnitude();
 
-  distance = distance < 5 ? 5 : distance > 25 ? 25 : distance;
+  distance = distance < 25 ? 25 : distance > 50 ? 50 : distance;
 
   force.normalize();
   var strength = (Particle.G * this.mass * mover.mass) / (distance * distance);
   force.mult(strength);
 
   return force;
-}
+};
