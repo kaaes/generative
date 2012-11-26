@@ -29,7 +29,7 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      ctx.globalAlpha = 0.09;
+      ctx.globalAlpha = 0.08;
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       ctx.lineCap = 'butt';
@@ -105,13 +105,13 @@
 
         counter++;
 
-        if (counter % 4000 === 0) {
+        if (counter % 3000 === 0) {
           clearPart(1);
           start();
           return;
         }
 
-        if (counter % 4000 > 3800) {
+        if (counter % 3000 > 2800) {
           clearPart(0.05);
           return;
         }
