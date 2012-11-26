@@ -31,55 +31,69 @@
 
       ctx.globalAlpha = 0.09;
       ctx.globalCompositeOperation = 'lighter';
-
-      //ctx.fillStyle = 'rgba(0,0,0,0.01)';
-      //ctx.fillRect(0,0,canvas.width, canvas.height);
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'butt';
 
       var attractors = [];
       var particles = [];
 
-      function reset() {
+      var particlesInSet = 30;
 
+      var counter = 0;
+
+      function start() {
         generateAttractors();
-        generateParticles();
+      }
+
+      function clearPart(opacity) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
       }
 
       function generateAttractors() {
         attractors = [];
+        particles = [];
+
+        var attractor;
+        var particle;
+
+        var vel, start, delta, pos;
 
         for (var i = 0; i < 4; i++) {
-          var attractor = new Particle(random(0, window.innerWidth), random(0, window.innerHeight));
-          attractor.mass = random(100, 300);
-          //attractor.draw(ctx);
 
-          attractors.push(attractor);
-        }
-      }
+          if (!attractors[i]) {
+            attractors[i] = new Particle();
+          }
 
-      function generateParticles() {
-        particles = [];
-        for (var i = 0; i < attractors.length; i++) {
-          var vel = new Vector(random(-5, 5), random(-5, 5));
-          var start = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
-          var delta = random(-20, 20);
-        
-          particles[i] = [];
-        
-          for (var j = 0; j < 30; j++) {
-            var pos = new Vector(start.x, start.y + j * 20);
-            var particle = new Particle();
+          attractors[i].position = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
+          attractors[i].mass = random(200, 300);
+
+          vel = new Vector(random(0, 5), random(5, 10));
+          start = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
+          delta = random(-20, 20);
+
+          for (var j = 0; j < particlesInSet; j++) {
+            particle = particles[particlesInSet * i + j];
+
+            if (!particle) {
+              particle = new Particle();
+              particles[particlesInSet * i + j] = particle;
+            }
+
+            pos = new Vector(start.x, start.y + j * 20);
+
             particle.position.add(pos);
             particle.velocity.add(vel);
 
-            particles[i].push(particle);
           }
-        };
+        }
       }
 
-      var counter = 0;
-
-      generateAttractors();
-      generateParticles();
+      start();
 
       var anim = new AnimationFrame(function() {
         draw();        
@@ -92,44 +106,30 @@
         counter++;
 
         if (counter % 4000 === 0) {
-          reset();
+          clearPart(1);
+          start();
+          return;
         }
 
         if (counter % 4000 > 3800) {
-          ctx.save();
-          ctx.globalCompositeOperation = 'source-over';
-          ctx.fillStyle = 'rgba(0,0,0,1)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.restore();
+          clearPart(0.05);
           return;
         }
 
         for (i = 0; i < particles.length; i++) {
+          var prev = new Vector(particles[i].position.x, particles[i].position.y);
 
-          for (j = 0; j < particles[i].length; j++) {
-          
-            var prev = new Vector(particles[i][j].position.x, particles[i][j].position.y);
+          var attrIndex = Math.floor(i / particlesInSet);
+          var force = attractors[attrIndex].attract(particles[i]);
+          particles[i].addForce(force);
+          particles[i].update(ctx);
 
-            if (attractors[i]) {
-              var force = attractors[i].attract(particles[i][j]);
-              particles[i][j].addForce(force);
-            }
-
-            particles[i][j].update(ctx);
-
-            ctx.beginPath();
-            ctx.moveTo(prev.x, prev.y);
-            ctx.lineTo(particles[i][j].position.x, particles[i][j].position.y);
-            ctx.stroke();
-            ctx.closePath();
-            //particles[i].draw(ctx);
-            //ctx.restore();
-          }
+          ctx.beginPath();
+          ctx.moveTo(prev.x, prev.y);
+          ctx.lineTo(particles[i].position.x, particles[i].position.y);
+          ctx.stroke();
+          ctx.closePath();
         }
-
-
-        //ctx.quadraticCurveTo(cp.x, cp.y, particle.position.x, particle.position.y);
-        //ctx.lineTo(particle.position.x,particle.position.y);
       }
 
       function random(min, max) {
