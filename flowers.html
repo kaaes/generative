@@ -90,9 +90,11 @@
       });
 
       function draw() {
-        particle.acceleration = Vector.sub(middle, particle.position);
-        particle.acceleration.normalize();
-        particle.update(ctx);
+        var acceleration = Vector.sub(middle, particle.position);
+        acceleration.normalize();
+        particle.addForce(acceleration);
+        particle.update();
+        particle.draw(ctx);
       }
 
       function random(min, max) {
