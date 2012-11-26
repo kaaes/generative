@@ -53,76 +53,46 @@
 
       var ctx = canvas.getContext('2d');
       canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight
+      canvas.height = window.innerHeight;
 
       var middle = new Vector(Math.floor(window.innerWidth / 2), Math.floor(window.innerHeight / 2));
       //var middle = new Vector(random(window.innerWidth / 4, 3 * window.innerWidth / 4), random(window.innerHeight / 4, 3 * window.innerHeight / 4))
 
-      var attractor = new Particle(middle.x + 300, middle.y);
-      attractor.mass = 200;
-      attractor.draw(ctx);
+      var timer = 1;
+      var quantity = random(3000, 5000);
+      var pos = new Vector(random(400, 600), random(250, 350));
+      var vel = new Vector(random(1, 5), random(1, 5));
 
-      var quantity = random(3000, 15000);
-      //var pos = new Vector(random(400, 600), random(250, 350));
+      var particle = new Particle();
+      particle.position.add(pos);
+      particle.velocity.add(vel);
 
-      // pxn.innerHTML = particle.position.x;
-      // pyn.innerHTML = particle.position.y;
-      // vxn.innerHTML = particle.velocity.x;
-      // vyn.innerHTML = particle.velocity.y;
-      // qn.innerHTML = quantity;
+      pxn.innerHTML = particle.position.x;
+      pyn.innerHTML = particle.position.y;
+      vxn.innerHTML = particle.velocity.x;
+      vyn.innerHTML = particle.velocity.y;
+      qn.innerHTML = quantity;
 
-      ctx.strokeStyle = 'rgba(0,0,0,.1)';
-
-      var particles = [];
-
-      for (var i = 0; i < 10; i++) {
-        var pos = new Vector(random(400, 600), random(250, 350));
-        var vel = new Vector(random(0, 5), random(0, 5));
-        var particle = new Particle();
-        particle.position.add(pos);
-        particle.velocity.add(vel);
-
-        particles.push(particle);
-      }
-      // ctx.beginPath();
-      // ctx.moveTo(particle.position.x, particle.position.y);
-
-      // while (timer < quantity) {
-      //   draw();
-      //   timer++;
-      // }
-
-      // ctx.stroke();
-      // ctx.endPath();
-
-      var r = 5;
-      var theta = 0;
+      var recreate = false;
 
 
       var anim = new AnimationFrame(function() {
-        draw();        
+        console.log(recreate);
+        if (recreate) {
+          draw();
+        } else {
+          while (timer < quantity) {
+            draw();
+            timer++;
+          }
+        }
+        
       });
 
       function draw() {
-
-        var prev = particles[0].position.copy();
-
-        var x = r * Math.cos(theta) + 300;
-        var y = r * Math.sin(theta) + 300;
-
-        particles[0].setPosition(x, y);
-        particles[0].update();
-        //particles[0].draw(ctx);
-        
-
-        ctx.beginPath();
-        ctx.moveTo(prev.x, prev.y);
-        ctx.lineTo(particles[0].position.x, particles[0].position.y);
-        ctx.stroke();
-        ctx.closePath();
-        
-        theta += 0.1;
-        r *= 1.005;
+        particle.acceleration = Vector.sub(middle, particle.position);
+        particle.acceleration.normalize();
+        particle.update(ctx);
       }
 
       function random(min, max) {

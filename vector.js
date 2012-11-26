@@ -1,11 +1,11 @@
 function Vector(x, y) {
-	this.x = x || 0;
-	this.y = y || 0;
+  this.x = x || 0;
+  this.y = y || 0;
 }
 
 /* static methods */
 Vector.add = function(v1, v2) {
-	return new Vector(v1.x + v2.x, v1.y + v2.y);
+  return new Vector(v1.x + v2.x, v1.y + v2.y);
 }
 
 Vector.sub = function(v1, v2) {
@@ -49,7 +49,11 @@ Vector.prototype.magnitude = function() {
 /* vector coords for magnitude 1 */
 Vector.prototype.normalize = function() {
   var m = this.magnitude();
-  return m ? this.div(m) : undefined;
+  if (m) this.div(m);
+}
+
+Vector.prototype.copy = function() {
+  return new Vector(this.x, this.y);
 }
 
 
