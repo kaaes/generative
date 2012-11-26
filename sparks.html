@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  #params {
+    position: absolute;
+    padding: 20px;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script>
+    (function() {
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      ctx.globalAlpha = 0.07;
+      ctx.globalCompositeOperation = 'lighter';
+
+      //ctx.fillStyle = 'rgba(0,0,0,0.01)';
+      //ctx.fillRect(0,0,canvas.width, canvas.height);
+
+      var attractors = [];
+      var particles = [];
+
+      function reset() {
+
+        generateAttractors();
+        generateParticles();
+      }
+
+      function generateAttractors() {
+        attractors = [];
+
+        for (var i = 0; i < 4; i++) {
+          var attractor = new Particle(random(0, window.innerWidth), random(0, window.innerHeight));
+          attractor.mass = random(100, 300);
+          //attractor.draw(ctx);
+
+          attractors.push(attractor);
+        }
+      }
+
+      function generateParticles() {
+        particles = [];
+        for (var i = 0; i < attractors.length; i++) {
+          var vel = new Vector(random(-5, 5), random(-5, 5));
+          var start = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
+          var delta = random(-20, 20);
+        
+          particles[i] = [];
+        
+          for (var j = 0; j < 30; j++) {
+            var pos = new Vector(start.x, start.y + j * 20);
+            var particle = new Particle();
+            particle.position.add(pos);
+            particle.velocity.add(vel);
+
+            particles[i].push(particle);
+          }
+        };
+      }
+
+      var counter = 0;
+
+      generateAttractors();
+      generateParticles();
+
+      var anim = new AnimationFrame(function() {
+        draw();        
+      });
+
+      function draw() {
+
+        ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 36) + 36) + ',100%,50%,1)';
+
+        counter++;
+
+        if (counter % 2000 === 0) {
+          reset();
+        }
+
+        if (counter % 2000 > 1800) {
+          ctx.save();
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.fillStyle = 'rgba(0,0,0,1)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.restore();
+          return;
+        }
+
+        for (i = 0; i < particles.length; i++) {
+
+          for (j = 0; j < particles[i].length; j++) {
+          
+            var prev = new Vector(particles[i][j].position.x, particles[i][j].position.y);
+
+            if (attractors[i]) {
+              var force = attractors[i].attract(particles[i][j]);
+              particles[i][j].addForce(force);
+            }
+
+            particles[i][j].update(ctx);
+
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            ctx.lineTo(particles[i][j].position.x, particles[i][j].position.y);
+            ctx.stroke();
+            ctx.closePath();
+            //particles[i].draw(ctx);
+            //ctx.restore();
+          }
+        }
+
+
+        //ctx.quadraticCurveTo(cp.x, cp.y, particle.position.x, particle.position.y);
+        //ctx.lineTo(particle.position.x,particle.position.y);
+      }
+
+      function random(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+      }
+
+    })();
+    </script>
+  </body>
+</html>
