@@ -29,7 +29,7 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      ctx.globalAlpha = 0.09;
+      ctx.globalAlpha = 0.08;
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       ctx.lineCap = 'butt';
@@ -37,7 +37,7 @@
       var attractors = [];
       var particles = [];
 
-      var particlesInSet = 30;
+      var particlesInSet = 100;
 
       var counter = 0;
 
@@ -63,7 +63,7 @@
 
         var vel, start, delta, pos;
 
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < 8; i++) {
 
           if (!attractors[i]) {
             attractors[i] = new Particle();
@@ -72,7 +72,7 @@
           attractors[i].position = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
           attractors[i].mass = random(200, 300);
 
-          vel = new Vector(random(0, 5), random(5, 10));
+          vel = new Vector(random(-5, 5), random(-10, -5));
           start = new Vector(random(0, window.innerWidth), random(0, window.innerHeight));
           delta = random(-20, 20);
 
@@ -84,7 +84,7 @@
               particles[particlesInSet * i + j] = particle;
             }
 
-            pos = new Vector(start.x, start.y + j * 20);
+            pos = new Vector(start.x, start.y + j * 10);
 
             particle.position.add(pos);
             particle.velocity.add(vel);
@@ -105,13 +105,13 @@
 
         counter++;
 
-        if (counter % 4000 === 0) {
+        if (counter % 8000 === 0) {
           clearPart(1);
           start();
           return;
         }
 
-        if (counter % 4000 > 3800) {
+        if (counter % 8000 > 7800) {
           clearPart(0.05);
           return;
         }
@@ -122,7 +122,7 @@
           var attrIndex = Math.floor(i / particlesInSet);
           var force = attractors[attrIndex].attract(particles[i]);
           particles[i].addForce(force);
-          particles[i].update(ctx);
+          particles[i].update();
 
           ctx.beginPath();
           ctx.moveTo(prev.x, prev.y);
