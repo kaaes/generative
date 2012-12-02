@@ -29,7 +29,7 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      ctx.globalAlpha = 0.08;
+      ctx.globalAlpha = 0.09;
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       ctx.lineCap = 'butt';
@@ -63,7 +63,7 @@
 
         var vel, start, delta, pos;
 
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < 6; i++) {
 
           if (!attractors[i]) {
             attractors[i] = new Particle();
@@ -105,13 +105,13 @@
 
         counter++;
 
-        if (counter % 3000 === 0) {
+        if (counter % 4000 === 0) {
           clearPart(1);
           start();
           return;
         }
 
-        if (counter % 3000 > 2800) {
+        if (counter % 4000 > 3800) {
           clearPart(0.05);
           return;
         }
