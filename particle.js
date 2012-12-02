@@ -68,7 +68,7 @@ Particle.prototype.attract = function(mover) {
   var force = Vector.sub(this.position, mover.position);
   var distance = force.magnitude();
 
-  distance = distance < 25 ? 25 : distance > 50 ? 50 : distance;
+  distance = distance < 5 ? 5 : distance > 25 ? 25 : distance;
 
   force.normalize();
   var strength = (Particle.G * this.mass * mover.mass) / (distance * distance);
