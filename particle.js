@@ -9,6 +9,8 @@ function Particle(x, y) {
 
   this.radius = 1;
   this.mass = 1;
+
+  this.fillColor = 'black';
 }
 
 Particle.G = 1;
@@ -34,6 +36,10 @@ Particle.prototype.addForce = function(force) {
 Particle.prototype.update = function(ctx) {
   this.position.add(this.velocity);
 
+  if (this.radius < 0) {
+    this.radius = 0;
+  }
+
   //this.draw(ctx);
 
   // if (this.position.x + this.radius * 0.5 >= window.innerWidth) {
@@ -55,10 +61,10 @@ Particle.prototype.update = function(ctx) {
 
 Particle.prototype.draw = function(ctx) {
   ctx.save();
-  ctx.fillStyle = 'rgba(243,91,82,.9)';
+  ctx.fillStyle = this.fillColor;
   ctx.translate(this.position.x, this.position.y);
   ctx.beginPath();
-  ctx.arc(0, 0, this.mass / 2, 0, Math.PI * 2);
+  ctx.arc(0, 0, this.radius / 2, 0, Math.PI * 2);
   ctx.closePath();
   ctx.fill();
   ctx.restore();

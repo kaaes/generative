@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  #params {
+    position: absolute;
+    padding: 20px;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script>
+    (function() {
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      ctx.globalAlpha = 1;
+      //ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = 1;
+      ctx.fillStyle = 'white';
+      ctx.strokeStyle = 'white';
+
+      ctx.translate(100, 200);
+      //ctx.rotate(-60 * Math.PI * 180);
+
+      var parts = [];
+
+      function clearPart(opacity) {
+        ctx.save();
+        ctx.globalAlpha = opacity;
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.fillStyle = 'rgba(0,0,0,1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.restore();
+      }
+
+      for (var i = 0; i < 50; i++) {
+        var particle = new Particle();
+        particle.radius = 100 - 4 * i;
+        
+        var pos = parts[i - 1] ? 
+          Vector.add(parts[i - 1].position, new Vector(particle.radius / 1.5, 0)) :
+          new Vector(50, 150);
+
+        particle.position = pos;
+        particle.fillColor = 'rgba(255,255,255,.5)';
+        particle.update();
+
+        parts.push(particle);
+      }
+
+      var angle = 0;
+      var angleVel = 0.25;
+      var amplitude = 120;
+
+      var startAngle = 0;
+
+      var points = [];
+
+      function draw() {
+        angle = startAngle;
+        ctx.clearRect(-50,-200,canvas.width, canvas.height);
+        //ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 180)) + ',100%,50%,1)';
+        //ctx.rotate(-10 * Math.PI * 180);
+        ctx.beginPath();
+        for (var i = 0, l = parts.length; i < l; i++) {
+          y = parts[i].radius * 2.5 * Math.sin(angle);
+
+          if(parts[i].radius > 0) parts[i].radius -= .01;
+
+          parts[i].position.y = y;
+          parts[i].update();
+
+          points.push([y + parts[i].radius, y - parts[i].radius]);
+
+          parts[i].draw(ctx);
+
+          if (parts[i - 1]) {
+            var cp = {
+              x: (parts[i - 1].position.x + parts[i].position.x) / 2,
+              y: (parts[i - 1].position.y + parts[i].position.y) / 2
+            }
+            ctx.quadraticCurveTo(parts[i - 1].position.x, parts[i - 1].position.y, cp.x, cp.y);
+          }
+ 
+          angle += angleVel;
+        }
+        
+        ctx.stroke();
+        ctx.closePath();
+
+        startAngle += 0.03;
+      }
+
+      var counter = 0;
+
+
+      var anim = new AnimationFrame(function() {
+        draw();  
+        counter++;     
+      });
+
+      function random(min, max) {
+        return min + Math.floor(Math.random() * (max - min + 1));
+      }
+
+    })();
+    </script>
+  </body>
+</html>
