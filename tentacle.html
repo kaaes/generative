@@ -35,7 +35,7 @@
       ctx.fillStyle = 'white';
       ctx.strokeStyle = 'white';
 
-      ctx.translate(100, 200);
+      ctx.translate(-200, 300);
       //ctx.rotate(-60 * Math.PI * 180);
 
       var parts = [];
@@ -49,10 +49,14 @@
         ctx.restore();
       }
 
+      var radius = 500;
+
       for (var i = 0; i < 50; i++) {
         var particle = new Particle();
-        particle.radius = 100 - 4 * i;
-        
+        particle.radius = Math.ceil(radius);
+
+        radius *= 0.8;
+
         var pos = parts[i - 1] ? 
           Vector.add(parts[i - 1].position, new Vector(particle.radius / 1.5, 0)) :
           new Vector(50, 150);
@@ -62,10 +66,16 @@
         particle.update();
 
         parts.push(particle);
+
+        if (particle.radius < 10) {
+          //particle.radius = 20;
+          break;
+        }
+        
       }
 
       var angle = 0;
-      var angleVel = 0.25;
+      var angleVel = 0.4;
       var amplitude = 120;
 
       var startAngle = 0;
@@ -74,37 +84,88 @@
 
       function draw() {
         angle = startAngle;
-        ctx.clearRect(-50,-200,canvas.width, canvas.height);
+        points = [];
+        ctx.clearRect(200,-300,canvas.width, canvas.height);
         //ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 180)) + ',100%,50%,1)';
         //ctx.rotate(-10 * Math.PI * 180);
-        ctx.beginPath();
+        //ctx.beginPath();
+        //ctx.moveTo(0, 0);
         for (var i = 0, l = parts.length; i < l; i++) {
-          y = parts[i].radius * 2.5 * Math.sin(angle);
-
-          if(parts[i].radius > 0) parts[i].radius -= .01;
+          y = parts[i].radius * Math.sin(angle);
 
           parts[i].position.y = y;
           parts[i].update();
 
-          points.push([y + parts[i].radius, y - parts[i].radius]);
-
-          parts[i].draw(ctx);
-
-          if (parts[i - 1]) {
-            var cp = {
-              x: (parts[i - 1].position.x + parts[i].position.x) / 2,
-              y: (parts[i - 1].position.y + parts[i].position.y) / 2
-            }
-            ctx.quadraticCurveTo(parts[i - 1].position.x, parts[i - 1].position.y, cp.x, cp.y);
+          if (parts[i + 1]) {
+            var point = [parts[i].position.x, y + parts[i].radius / 2, y - parts[i].radius / 2];
+          } else {
+            var point = [parts[i].position.x + parts[i].radius, y, y];
           }
+
+          points.push(point);
+
+          var ang = (y / parts[i].radius) * -15 * Math.PI/180;
+
+          //ctx.save();
+          //ctx.translate(parts[i].position.x, y);
+          //ctx.rotate(ang);
+
+          // ctx.beginPath();
+          // ctx.moveTo(0, -parts[i].radius / 2);
+          // ctx.lineTo(0, parts[i].radius/2);
+          // ctx.closePath();
+          // ctx.stroke();
+
+          // ctx.restore();
+
+          //parts[i].draw(ctx);
  
           angle += angleVel;
         }
-        
-        ctx.stroke();
-        ctx.closePath();
 
-        startAngle += 0.03;
+        i = 0;
+        var dir = 1;
+
+        ctx.beginPath();
+
+        while (points[i]) {
+
+          if (i == points.length - 1) {
+            ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1]);
+          }
+
+          if (dir == -1) {
+            if (points[i - 1]) {
+              var cp = {
+                x: (points[i][0] + points[i - 1][0]) / 2,
+                y: (points[i][2] + points[i - 1][2]) / 2
+              }
+              ctx.quadraticCurveTo(points[i][0], points[i][2], cp.x, cp.y);
+            }
+            //ctx.lineTo(points[i][0], points[i][2]);
+          } else {
+            if (points[i - 1]) {
+              var cp = {
+                x: (points[i - 1][0] + points[i][0]) / 2,
+                y: (points[i - 1][1] + points[i][1]) / 2
+              }
+              ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], cp.x, cp.y);
+            }
+            // ctx.lineTo(points[i][0], points[i][1]);
+          }
+
+          i += dir;
+
+          if (i == points.length - 1) {
+            dir = -1;
+          }
+        }
+        
+        ctx.closePath();
+        //ctx.stroke();
+        ctx.fill();
+
+        startAngle += 0.02;
       }
 
       var counter = 0;
