@@ -48,10 +48,10 @@
         ctx.restore();
       }
 
-      var length = 800;
-      var totalLength = 0;
-
       var radius = 150;
+      var length = 800;
+      var totalLength = -radius;
+
       var i = 0;
 
       var angle = random(0, 100);
@@ -60,11 +60,14 @@
 
       var startAngle = random(0, 100);
 
+      var squishiness = 1;
+
       while (radius > 1) {
         var particle = new Particle();
         particle.radius = Math.round(radius);
+        particle.fillColor = 'rgba(255,255,255,.5)';
 
-        totalLength += particle.radius;
+        totalLength += 2 * particle.radius;
 
         radius *= 0.8;
 
@@ -74,9 +77,21 @@
       }
 
       function drawLength() {
+        var delta = length / totalLength - squishiness;
+
+        //console.log(length, totalLength);
+
+        angleVel += delta / 3;
+
+        if (angleVel < 0.2) angleVel = 0.2;
+        if (angleVel > 0.7) angleVel = 0.7;
+
+        squishiness = length / totalLength;
         parts.forEach(function(particle, i) {
-          var f = particle.radius / totalLength;
+          var f = 2 * particle.radius / totalLength;
           particle.squish = f * length - 2 * particle.radius;
+
+          //console.log(length, totalLength, f * length, 2 * particle.radius, particle.squish);
         
           var pos = parts[i - 1] ? 
             Vector.add(parts[i - 1].position,
@@ -84,18 +99,16 @@
             new Vector(0, 0);
 
           particle.position = pos;
-          particle.fillColor = 'rgba(255,255,255,.5)';
-          particle.update();
         });
       }
 
       function draw() {
         angle = startAngle;
         points = [];
-        ctx.clearRect(150,-300,canvas.width, canvas.height);
+        ctx.clearRect(-canvas.width, -canvas.height,canvas.width * 3, canvas.height * 3);
         ctx.save();
-        ctx.translate(0, ampCoef * -parts[0].radius * Math.cos(angle));
-        ctx.rotate((-5 * Math.PI/180) * Math.sin(angle));
+        //ctx.translate(0, ampCoef * -parts[0].radius * Math.cos(angle));
+        //ctx.rotate((-5 * Math.PI/180) * Math.sin(angle));
         //ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 180)) + ',100%,50%,1)';
         for (var i = 0, l = parts.length; i < l; i++) {
           y = ampCoef * parts[i].radius * Math.cos(angle);
@@ -117,7 +130,7 @@
 
           // ctx.restore();
 
-          //parts[i].draw(ctx);
+          parts[i].draw(ctx);
  
           angle += angleVel;
         }
@@ -194,7 +207,11 @@
       }
 
       document.body.addEventListener('mousemove', function(evt) {
-        var mouse = new Vector(evt.clientX, 0);
+        var mouse = new Vector(evt.clientX + 150, 0);
+        var angle = Math.atan2(evt.clientY - window.innerHeight/2, evt.clientX + 200);
+        ctx.restore();
+        ctx.save();
+        ctx.rotate(angle);
         length = mouse.magnitude();
         drawLength();
       });
