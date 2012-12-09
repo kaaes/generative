@@ -29,14 +29,13 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      ctx.globalAlpha = 1;
+      ctx.globalAlpha = .5;
       //ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       ctx.fillStyle = 'white';
       ctx.strokeStyle = 'white';
 
-      ctx.translate(-200, 300);
-      //ctx.rotate(-60 * Math.PI * 180);
+      ctx.translate(-150, 300);
 
       var parts = [];
 
@@ -49,66 +48,66 @@
         ctx.restore();
       }
 
-      var radius = 500;
+      var length = 800;
+      var totalLength = 0;
 
-      for (var i = 0; i < 50; i++) {
+      var radius = 150;
+      var i = 0;
+
+      var angle = random(0, 100);
+      var angleVel = random(3, 5) * 0.1;
+      var ampCoef = 1;
+
+      var startAngle = random(0, 100);
+
+      while (radius > 1) {
         var particle = new Particle();
-        particle.radius = Math.ceil(radius);
+        particle.radius = Math.round(radius);
+
+        totalLength += particle.radius;
 
         radius *= 0.8;
 
-        var pos = parts[i - 1] ? 
-          Vector.add(parts[i - 1].position, new Vector(particle.radius / 1.5, 0)) :
-          new Vector(50, 150);
-
-        particle.position = pos;
-        particle.fillColor = 'rgba(255,255,255,.5)';
-        particle.update();
-
         parts.push(particle);
 
-        if (particle.radius < 10) {
-          //particle.radius = 20;
-          break;
-        }
-        
+        i++;
       }
 
-      var angle = 0;
-      var angleVel = 0.4;
-      var amplitude = 120;
+      function drawLength() {
+        parts.forEach(function(particle, i) {
+          var f = particle.radius / totalLength;
+          particle.squish = f * length - 2 * particle.radius;
+        
+          var pos = parts[i - 1] ? 
+            Vector.add(parts[i - 1].position,
+                       new Vector(parts[i - 1].radius + particle.radius + particle.squish, 0)) :
+            new Vector(0, 0);
 
-      var startAngle = 0;
-
-      var points = [];
+          particle.position = pos;
+          particle.fillColor = 'rgba(255,255,255,.5)';
+          particle.update();
+        });
+      }
 
       function draw() {
         angle = startAngle;
         points = [];
-        ctx.clearRect(200,-300,canvas.width, canvas.height);
+        ctx.clearRect(150,-300,canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(0, ampCoef * -parts[0].radius * Math.cos(angle));
+        ctx.rotate((-5 * Math.PI/180) * Math.sin(angle));
         //ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 180)) + ',100%,50%,1)';
-        //ctx.rotate(-10 * Math.PI * 180);
-        //ctx.beginPath();
-        //ctx.moveTo(0, 0);
         for (var i = 0, l = parts.length; i < l; i++) {
-          y = parts[i].radius * Math.sin(angle);
+          y = ampCoef * parts[i].radius * Math.cos(angle);
+
+          var ang = (-30 * Math.sin(angle)) * Math.PI/180;
 
           parts[i].position.y = y;
-          parts[i].update();
+          parts[i].angle = ang;
 
-          if (parts[i + 1]) {
-            var point = [parts[i].position.x, y + parts[i].radius / 2, y - parts[i].radius / 2];
-          } else {
-            var point = [parts[i].position.x + parts[i].radius, y, y];
-          }
-
-          points.push(point);
-
-          var ang = (y / parts[i].radius) * -15 * Math.PI/180;
-
-          //ctx.save();
-          //ctx.translate(parts[i].position.x, y);
-          //ctx.rotate(ang);
+          // ctx.save();
+          // ctx.translate(parts[i].position.x, y);
+          // ctx.rotate(ang);
 
           // ctx.beginPath();
           // ctx.moveTo(0, -parts[i].radius / 2);
@@ -128,37 +127,47 @@
 
         ctx.beginPath();
 
-        while (points[i]) {
+        while (parts[i]) {
 
-          if (i == points.length - 1) {
-            ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1]);
-          }
+          ctx.save();
+          ctx.translate(parts[i].position.x, parts[i].position.y);
+          ctx.rotate(parts[i].angle);
 
           if (dir == -1) {
-            if (points[i - 1]) {
-              var cp = {
-                x: (points[i][0] + points[i - 1][0]) / 2,
-                y: (points[i][2] + points[i - 1][2]) / 2
-              }
-              ctx.quadraticCurveTo(points[i][0], points[i][2], cp.x, cp.y);
-            }
-            //ctx.lineTo(points[i][0], points[i][2]);
+            // if (points[i - 1]) {
+            //   var cp = {
+            //     x: (points[i][0] + points[i - 1][0]) / 2,
+            //     y: (points[i][2] + points[i - 1][2]) / 2
+            //   }
+            //   ctx.quadraticCurveTo(points[i][0], points[i][2], cp.x, cp.y);
+            // }
+            ctx.lineTo(0, parts[i].radius);
           } else {
-            if (points[i - 1]) {
-              var cp = {
-                x: (points[i - 1][0] + points[i][0]) / 2,
-                y: (points[i - 1][1] + points[i][1]) / 2
-              }
-              ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], cp.x, cp.y);
-            }
-            // ctx.lineTo(points[i][0], points[i][1]);
+            // if (points[i - 1]) {
+            //   var cp = {
+            //     x: (points[i - 1][0] + points[i][0]) / 2,
+            //     y: (points[i - 1][1] + points[i][1]) / 2
+            //   }
+            //   ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], cp.x, cp.y);
+            // }
+            ctx.lineTo(0, -parts[i].radius);
+          }
+
+
+          if (i == parts.length - 1) {
+            ctx.lineTo(parts[i].radius, 0);
+            ctx.lineTo(0, parts[i].radius);
+            //ctx.quadraticCurveTo(points[i - 1][0], points[i - 1][1], points[i][0], points[i][1]);
+            //ctx.fillRect(points[i][0], points[i][1], 5, 5)
+          }
+
+          ctx.restore();
+
+          if (i == parts.length - 1) {
+            dir = -1;
           }
 
           i += dir;
-
-          if (i == points.length - 1) {
-            dir = -1;
-          }
         }
         
         ctx.closePath();
@@ -166,19 +175,29 @@
         ctx.fill();
 
         startAngle += 0.02;
+
+        ctx.restore();
       }
 
       var counter = 0;
 
+      drawLength();
 
       var anim = new AnimationFrame(function() {
         draw();  
+        //this.stop();
         counter++;     
       });
 
       function random(min, max) {
         return min + Math.floor(Math.random() * (max - min + 1));
       }
+
+      document.body.addEventListener('mousemove', function(evt) {
+        var mouse = new Vector(evt.clientX, 0);
+        length = mouse.magnitude();
+        drawLength();
+      });
 
     })();
     </script>
