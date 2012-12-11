@@ -35,8 +35,6 @@
       ctx.fillStyle = 'white';
       ctx.strokeStyle = 'white';
 
-      ctx.translate(-150, 300);
-
       var parts = [];
 
       function clearPart(opacity) {
@@ -46,6 +44,11 @@
         ctx.fillStyle = 'rgba(0,0,0,1)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.restore();
+      }
+
+      var coords = {
+        x: -150,
+        y: 300
       }
 
       var radius = 150;
@@ -61,6 +64,8 @@
       var startAngle = random(0, 100);
 
       var squishiness = 1;
+      var tip;
+      var base;
 
       while (radius > 1) {
         var particle = new Particle();
@@ -79,8 +84,6 @@
       function drawLength() {
         var delta = length / totalLength - squishiness;
 
-        //console.log(length, totalLength);
-
         angleVel += delta / 3;
 
         if (angleVel < 0.2) angleVel = 0.2;
@@ -90,8 +93,6 @@
         parts.forEach(function(particle, i) {
           var f = 2 * particle.radius / totalLength;
           particle.squish = f * length - 2 * particle.radius;
-
-          //console.log(length, totalLength, f * length, 2 * particle.radius, particle.squish);
         
           var pos = parts[i - 1] ? 
             Vector.add(parts[i - 1].position,
@@ -107,8 +108,9 @@
         points = [];
         ctx.clearRect(-canvas.width, -canvas.height,canvas.width * 3, canvas.height * 3);
         ctx.save();
-        //ctx.translate(0, ampCoef * -parts[0].radius * Math.cos(angle));
-        //ctx.rotate((-5 * Math.PI/180) * Math.sin(angle));
+        ctx.translate(coords.x, coords.y);
+        ctx.translate(0, ampCoef * -parts[0].radius * Math.cos(angle));
+        ctx.rotate((-5 * Math.PI/180) * Math.sin(angle));
         //ctx.strokeStyle = 'hsla(' + ((Math.sin(counter / 100) * 180)) + ',100%,50%,1)';
         for (var i = 0, l = parts.length; i < l; i++) {
           y = ampCoef * parts[i].radius * Math.cos(angle);
@@ -181,6 +183,9 @@
           }
 
           i += dir;
+
+          base = parts[0];
+          tip = parts[parts.length - 1];
         }
         
         ctx.closePath();
@@ -207,12 +212,17 @@
       }
 
       document.body.addEventListener('mousemove', function(evt) {
-        var mouse = new Vector(evt.clientX + 150, 0);
-        var angle = Math.atan2(evt.clientY - window.innerHeight/2, evt.clientX + 200);
-        ctx.restore();
-        ctx.save();
-        ctx.rotate(angle);
+        var mouse = new Vector(evt.clientX, evt.clientY);
         length = mouse.magnitude();
+        //mouse.normalize();
+
+        // ctx.beginPath();
+        // ctx.moveTo(tip.position.x + coords.x, tip.position.y + coords.y);
+        // ctx.lineTo(mouse.x, mouse.y);
+        // ctx.closePath();
+        // ctx.stroke();
+
+        var angle = Math.atan2(evt.clientY - window.innerHeight/2, evt.clientX + 200);
         drawLength();
       });
 
