@@ -133,11 +133,9 @@
   });
 
   document.body.addEventListener('mousedown', startDrawing);
+  document.body.addEventListener('mouseup', stopDrawing);
 
   function startDrawing(evt) {
-    document.body.removeEventListener('mousedown', startDrawing);
-    document.body.addEventListener('mousedown', stopDrawing);
-
     document.body.addEventListener('mousemove', doDraw); 
     document.body.addEventListener('keydown', changeBrush); 
 
@@ -148,9 +146,6 @@
   }
 
   function stopDrawing(evt) {
-    document.body.addEventListener('mousedown', startDrawing);
-    document.body.removeEventListener('mousedown', stopDrawing);
-
     document.body.removeEventListener('mousemove', doDraw); 
     document.body.removeEventListener('keydown', changeBrush); 
   }
