@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="utils.js"></script>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script src="agents.js"></script>
+    <script>
+      // var onFailSoHard = function(e) {
+      //   console.log('Reeeejected!', e);
+      // };
+
+      // var context = new window.webkitAudioContext();
+
+      // // Not showing vendor prefixes.
+      // navigator.webkitGetUserMedia({video: false, audio: true}, function(stream) {
+      //   console.log(stream);
+
+      //   var microphone = context.createMediaStreamSource(stream);
+      //   var analyser = context.createAnalyser();
+      //   var javascriptNode = context.createJavaScriptNode(2048, 1, 1);
+
+      //   analyser.smoothingTimeConstant = 0;
+      //   analyser.fftSize = 512;
+
+      //   microphone.connect(analyser);
+      //   analyser.connect(javascriptNode);
+      //   javascriptNode.connect(context.destination);
+
+      //   javascriptNode.onaudioprocess = function(evt) {
+      //     console.log('average', average, total);
+      //     // get the average for the first channel
+      //     var array = new Uint8Array(analyser.frequencyBinCount);
+      //     analyser.getByteFrequencyData(array);
+
+      //     var total = 0;
+      //     var average = 0;
+
+      //     for (var i = 0; i < array.length; i++) {
+      //       total += array[i];
+      //     }
+
+      //     average = total / array.length;
+
+      //     console.log('average', average, total);
+
+      //     if (average >= 105) {
+      //     }
+      //   };
+      // }, onFailSoHard);
+    </script>
+  </body>
+</html>
