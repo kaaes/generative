@@ -9,11 +9,11 @@ function Particle(x, y) {
   this.radius = 1;
   this.mass = 1;
   this.maxSpeed = 0;
-
-  this.fillColor = 'black';
 }
 
 Particle.G = 1;
+
+Particle.prototype.fillColor = 'black';
 
 Particle.prototype.setPosition = function(x, y) {
   this.position.x = x;
@@ -40,8 +40,6 @@ Particle.prototype.update = function(ctx) {
   if (this.radius < 0) {
     this.radius = 0;
   }
-
-  //this.draw(ctx);
 
   if (this.constrainToWindow) {
 
@@ -79,7 +77,7 @@ Particle.prototype.attract = function(mover) {
   var force = Vector.sub(this.position, mover.position);
   var distance = force.magnitude();
 
-  distance = distance < 5 ? 5 : distance > 50 ? 50 : distance;
+  distance = distance < 20 ? 20 : distance > 30 ? 30 : distance;
 
   force.normalize();
   var strength = (Particle.G * this.mass * mover.mass) / (distance * distance);
@@ -88,3 +86,11 @@ Particle.prototype.attract = function(mover) {
 
   return force;
 };
+
+Particle.prototype.doesCollide = function(particle) {
+  var dist = new Vector(
+    this.position.x - particle.position.x,
+    this.position.y - particle.position.y
+  )
+  return dist.magnitude() < this.radius + particle.radius     
+}

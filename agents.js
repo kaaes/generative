@@ -43,10 +43,22 @@
   }
 
   function draw() {
-    place(mouse.x, mouse.y);
+    place();
   }
 
   function place() {
+
+    if (center.x > canvas.width + radius) {
+      center.x = -radius;
+    } else if (center.x < -radius) {
+      center.x = canvas.width + radius;
+    }
+
+    if (center.y > canvas.height + radius) {
+      center.y = -radius;
+    } else if (center.y < -radius) {
+      center.y = canvas.height;
+    }
 
     var v = new Vector(mouse.x - center.x, mouse.y - center.y);
     var m = Math.floor(v.magnitude());
@@ -92,10 +104,8 @@
 
       var np = Vector.add(p[i], d);
 
-      if (Math.abs(np.x - rp[i].x) > radius/4 ||
-          Math.abs(np.y - rp[i].y) > radius/4) {
-
-      } else {
+      if (Math.abs(np.x - rp[i].x) < radius / 5 &&
+          Math.abs(np.y - rp[i].y) < radius / 5) {
         p[i].add(d);
       }
 
@@ -128,12 +138,15 @@
   counter = 0;
 
   var anim = new AnimationFrame(function() {
-    draw(); 
+    //updatePosition();
+    draw();
     counter++;     
   });
 
   document.body.addEventListener('mousedown', startDrawing);
   document.body.addEventListener('mouseup', stopDrawing);
+
+  document.body.addEventListener('keydown', drawWithKeyboard); 
 
   function startDrawing(evt) {
     document.body.addEventListener('mousemove', doDraw); 
@@ -168,5 +181,65 @@
       default:
         break;
     }
+  }
+
+  function drawWithKeyboard(evt) {
+    console.log('draw', evt.keyCode);
+    var x, y, step = 9999999;
+
+    if (!evt.keycode === 27) {
+      mouse.x = center.x;
+      mouse.y = center.y;
+      return;
+    }
+    switch (evt.keyCode) {
+      case 38: //up
+        x = 0;
+        y = -step;
+        break;
+
+      case 40: // down:
+        x = 0;
+        y = step;
+        break;
+
+      case 39: //right
+        x = step; y = 0;
+        break;
+
+      case 37: //left
+        x = -step; y = 0;
+        break;
+
+      case 27:
+        stopDrawing(evt);
+        break;
+
+      default:
+        x = mouse.x;
+        y = mouse.y;
+        break;
+    }
+
+    mouse.x = x;
+    mouse.y = y;
+  }
+
+  function updatePosition() { 
+    mouse.x += utils.random(-50, 50);
+      mouse.y += utils.random(-50, 50);
+
+    if (mouse.x > canvas.width) {
+      mouse.x = 0;
+    }
+
+    if (mouse.y > canvas.height) {
+      mouse.y = 0;
+    }
+
+    if (mouse.y < 0) {
+      mouse.y = canvas.height;
+    }
+
   }
 })();
