@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  #params {
+    position: absolute;
+    padding: 20px;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script src="utils.js"></script>
+    <script>
+    (function() {
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      ctx.globalAlpha = 0.3;
+      //ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'butt';
+
+      ctx.strokeStyle = 'rgba(255,255,255,1)';
+      ctx.fillColor = 'yellow';
+
+      var particles = [];
+      var particlesInSet = 100;
+
+      var counter = 0;
+
+      var target;
+
+      var friction = 0.01;
+
+      function setup() {
+        var p, r = 15;
+        for (var i = 0; i < particlesInSet; i++) {
+          p = new Particle();
+          p.setPosition(
+            utils.random(r, canvas.width - r),
+            utils.random(r, canvas.height - r)
+          );
+
+          p.fillColor = 'yellow';
+          p.radius = r;
+          p.maxSpeed = 0;
+          p.constrainToWindow = true;
+          p.draw(ctx);
+
+          particles.push(p);
+        }
+
+        target = new Particle(canvas.width / 2, canvas.height / 2);
+        target.radius = 100;
+        target.mass = 100;
+        target.fillColor = 'yellow';
+        target.draw(ctx);
+      }
+
+      function accelerateTowards(p1, p2) {
+        // vector p1p2
+        var a = new Vector(
+          p2.position.x - p1.position.x,
+          p2.position.y - p1.position.y
+        );
+
+        a.normalize();
+        a.div(100);
+        p1.addForce(a);
+        a.mult(-1);
+        p2.addForce(a);
+      }
+
+      function draw() {
+        var tx = target.position.x;
+        var ty = target.position.y;
+        var i, j;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        for (i = 0, l = particles.length; i < l; i++) {
+          var p = particles[i];
+          var px = p.position.x;
+          var py = p.position.y;
+
+          var d, p1;
+
+          ctx.beginPath();
+          
+          for (j = i + 1; j < l; j++) {
+            p1 = particles[j];
+            d = new Vector(
+              particles[j].position.x - px,
+              particles[j].position.y - py
+            );
+
+            if (d.magnitude() < 50) {
+              accelerateTowards(p, p1);
+              ctx.moveTo(px, py);
+              ctx.lineTo(px + d.x, py + d.y);
+            }
+          }
+
+          ctx.closePath();
+          ctx.stroke();
+          
+          var a = new Vector(
+            tx - px,
+            ty - py
+          );
+
+          a.normalize();
+          a.div(50);
+
+          p.addForce(a);
+          // var friction = p.velocity.copy();
+          // friction.mult(-0.01);
+          // p.addForce(friction);
+          p.update();
+          p.draw(ctx);
+        };
+      }
+
+      setup();
+
+      var anim = new AnimationFrame(function() {
+        draw();        
+      });
+
+
+    })();
+    </script>
+  </body>
+</html>

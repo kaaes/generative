@@ -5,10 +5,10 @@ function Particle(x, y) {
 
   this.position = new Vector(x, y);
   this.velocity = new Vector();
-  //this.acceleration = new Vector();
 
   this.radius = 1;
   this.mass = 1;
+  this.maxSpeed = 0;
 
   this.fillColor = 'black';
 }
@@ -28,8 +28,9 @@ Particle.prototype.setVelocity = function(x, y) {
 Particle.prototype.addForce = function(force) {
   this.velocity.add(force);
 
-  if (this.velocity.magnitude() > 50) {
-    this.velocity.div(2);
+  if (this.maxSpeed && this.velocity.magnitude() > this.maxSpeed) {
+    this.velocity.normalize();
+    this.velocity.mult(this.maxSpeed);
   }
 };
 
@@ -42,21 +43,25 @@ Particle.prototype.update = function(ctx) {
 
   //this.draw(ctx);
 
-  // if (this.position.x + this.radius * 0.5 >= window.innerWidth) {
-  //   this.velocity.x *= -1;
-  // }
+  if (this.constrainToWindow) {
 
-  // if (this.position.y + this.radius * 0.5 >= window.innerHeight) {
-  //   this.velocity.y *= -1;
-  // }
+    if (this.position.x + this.radius >= window.innerWidth) {
+      this.velocity.x *= -1;
+    }
 
-  // if (this.position.x + this.radius * 0.5 <= 0) {
-  //   this.velocity.x *= -1;
-  // }
+    if (this.position.y + this.radius >= window.innerHeight) {
+      this.velocity.y *= -1;
+    }
 
-  // if (this.position.y + this.radius * 0.5 <= 0) {
-  //   this.velocity.y *= -1;
-  // }
+    if (this.position.x <= this.radius) {
+      this.velocity.x *= -1;
+    }
+
+    if (this.position.y <= this.radius) {
+      this.velocity.y *= -1;
+    }
+
+  }
 };
 
 Particle.prototype.draw = function(ctx) {
@@ -78,6 +83,7 @@ Particle.prototype.attract = function(mover) {
 
   force.normalize();
   var strength = (Particle.G * this.mass * mover.mass) / (distance * distance);
+
   force.mult(strength);
 
   return force;
