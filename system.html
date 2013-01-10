@@ -97,7 +97,7 @@
         );
 
         a.normalize();
-        a.div(100);
+        a.div(1000);
         p1.addForce(a);
         a.mult(-1);
         p2.addForce(a);
@@ -139,7 +139,7 @@
 
             dist = d.magnitude();
 
-            if (dist < 200) {
+            if (dist < 100) {
               accelerateTowards(p, p1);
               ctx.moveTo(px, py);
               ctx.lineTo(px + d.x, py + d.y);
@@ -214,7 +214,7 @@
           ctx.closePath();
           ctx.stroke();
           
-          //p.draw(ctx);
+          p.draw(ctx);
         };
       }
 
@@ -223,6 +223,11 @@
       var anim = new AnimationFrame(function() {
         draw();        
       });
+
+      document.body.addEventListener('mousemove', function(evt) {
+        target.position.x = evt.clientX;
+        target.position.y = evt.clientY;
+      })
 
 
     })();
