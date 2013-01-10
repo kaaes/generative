@@ -20,6 +20,10 @@ Vector.div = function(v, scale) {
   return Vector.mult(v, 1 / scale);
 };
 
+Vector.angle = function(v1, v2) {
+  return Math.atan2(v2.y - v1.y, v2.x - v1.x);
+}
+
 /* dynamic methods */
 Vector.prototype.add = function(v) {
   this.x += v.x;
@@ -55,6 +59,10 @@ Vector.prototype.normalize = function() {
 Vector.prototype.copy = function() {
   return new Vector(this.x, this.y);
 };
+
+Vector.prototype.angle = function() {
+  return Math.atan2(this.y, this.x);
+}
 
 
 

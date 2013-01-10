@@ -48,28 +48,45 @@
       var friction = 0.01;
 
       function setup() {
-        var p, r = 15;
+        var p, r = 15, collide;
         for (var i = 0; i < particlesInSet; i++) {
+          collide = false;
           p = new Particle();
           p.setPosition(
             utils.random(r, canvas.width - r),
             utils.random(r, canvas.height - r)
           );
 
-          p.fillColor = 'yellow';
-          p.radius = r;
-          p.maxSpeed = 0;
-          p.constrainToWindow = true;
-          p.draw(ctx);
+          // p.velocity = new Vector(
+          //   utils.random(-10, 10),
+          //   utils.random(-5, 5)
+          // );
 
-          particles.push(p);
+          p.radius = r;
+          p.mass = 1;
+
+          for(var j = 0, l = particles.length; j < l; j++) {
+            if (p.doesCollide(particles[j])) {
+              collide = true;
+              break;
+            }
+          }
+
+          if (!collide) {
+            p.fillColor = 'yellow';
+            p.maxSpeed = 10;
+            p.constrainToWindow = true;
+            p.draw(ctx);
+
+            particles.push(p);
+          }
         }
 
         target = new Particle(canvas.width / 2, canvas.height / 2);
         target.radius = 100;
         target.mass = 100;
         target.fillColor = 'yellow';
-        target.draw(ctx);
+        //target.draw(ctx);
       }
 
       function accelerateTowards(p1, p2) {
@@ -95,30 +112,12 @@
         
         for (i = 0, l = particles.length; i < l; i++) {
           var p = particles[i];
+          
           var px = p.position.x;
           var py = p.position.y;
 
-          var d, p1;
+          var d, p1, dist, dx, dy, angle, sin, cos, x0, y0, x1, y1, vx0, vx1, vxT, vyT, x1f, y1f, x0f, y0f, v0, v1;
 
-          ctx.beginPath();
-          
-          for (j = i + 1; j < l; j++) {
-            p1 = particles[j];
-            d = new Vector(
-              particles[j].position.x - px,
-              particles[j].position.y - py
-            );
-
-            if (d.magnitude() < 50) {
-              accelerateTowards(p, p1);
-              ctx.moveTo(px, py);
-              ctx.lineTo(px + d.x, py + d.y);
-            }
-          }
-
-          ctx.closePath();
-          ctx.stroke();
-          
           var a = new Vector(
             tx - px,
             ty - py
@@ -128,11 +127,94 @@
           a.div(50);
 
           p.addForce(a);
-          // var friction = p.velocity.copy();
-          // friction.mult(-0.01);
-          // p.addForce(friction);
           p.update();
-          p.draw(ctx);
+
+          ctx.beginPath();
+          
+          for (j = i + 1; j < l; j++) {
+            p1 = particles[j];
+            dx = p1.position.x - px;
+            dy = p1.position.y - py;
+            d = new Vector(dx, dy);
+
+            dist = d.magnitude();
+
+            if (dist < 200) {
+              accelerateTowards(p, p1);
+              ctx.moveTo(px, py);
+              ctx.lineTo(px + d.x, py + d.y);
+            }
+
+            if (dist < p.radius + p1.radius) {
+
+              
+              // calculate angle between velocities
+              // and stuff
+              angle = Math.atan2(dy, dx);
+              sin = Math.sin(angle);
+              cos = Math.cos(angle);
+
+              //get velocity magnitude
+              v0 = p.velocity.magnitude();
+              v1 = p1.velocity.magnitude();
+
+              // rotate p position
+              x0 = 0;
+              y0 = 0;
+
+              // rotate p1 position
+              x1 = dx * cos + dy * sin;
+              y1 = dy * cos - dx * sin;
+
+              // rotate p velocity
+              vx0 = p.velocity.x * cos + p.velocity.y * sin;
+              vy0 = p.velocity.y * cos - p.velocity.x * sin;
+
+              // rotate p1 velocity
+              vx1 = p1.velocity.x * cos + p1.velocity.y * sin;
+              vy1 = p1.velocity.y * cos - p1.velocity.x * sin;
+
+              // collision reaction
+              vxT = vx0 - vx1;
+
+              vx0 = ((p.mass - p1.mass) * vx0 + 2 * p1.mass * vx1) / (p.mass + p1.mass);
+              vx1 = vxT + vx0;
+
+              var absV = Math.abs(vx0) + Math.abs(vx1);
+              var overlap = (p.radius + p1.radius) - Math.abs(x0 - x1);
+
+              x0 += vx0 / absV * overlap;
+              x1 += vx1 / absV * overlap;
+
+              // console.log(vxT);
+
+              // rotate positions back
+              x0f = x0 * cos - y0 * sin;
+              y0f = y0 * cos + x0 * sin;
+
+              x1f = x1 * cos - y1 * sin;
+              y1f = y1 * cos + x1 * sin;
+
+              //adjust positions to screen positions
+              p1.position.x = p.position.x + x1f;
+              p1.position.y = p.position.y + y1f;
+
+              p.position.x += x0f;
+              p.position.y += y0f;
+
+              //rotate velocities back
+              p.velocity.x = vx0 * cos - vy0 * sin;
+              p.velocity.y = vy0 * cos + vx0 * sin;
+
+              p1.velocity.x = vx1 * cos - vy1 * sin;
+              p1.velocity.y = vy1 * cos + vx1 * sin;
+            }
+          }
+
+          ctx.closePath();
+          ctx.stroke();
+          
+          //p.draw(ctx);
         };
       }
 

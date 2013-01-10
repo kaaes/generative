@@ -43,20 +43,24 @@ Particle.prototype.update = function(ctx) {
 
   if (this.constrainToWindow) {
 
-    if (this.position.x + this.radius >= window.innerWidth) {
+    if (this.position.x + this.radius > window.innerWidth) {
       this.velocity.x *= -1;
+      this.position.x = window.innerWidth - this.radius;
     }
 
-    if (this.position.y + this.radius >= window.innerHeight) {
+    if (this.position.y + this.radius > window.innerHeight) {
       this.velocity.y *= -1;
+      this.position.y = window.innerHeight - this.radius;
     }
 
-    if (this.position.x <= this.radius) {
+    if (this.position.x < this.radius) {
       this.velocity.x *= -1;
+      this.position.x = this.radius;
     }
 
-    if (this.position.y <= this.radius) {
+    if (this.position.y < this.radius) {
       this.velocity.y *= -1;
+      this.position.y = this.radius;
     }
 
   }
@@ -92,5 +96,5 @@ Particle.prototype.doesCollide = function(particle) {
     this.position.x - particle.position.x,
     this.position.y - particle.position.y
   )
-  return dist.magnitude() < this.radius + particle.radius     
+  return dist.magnitude() <= this.radius + particle.radius;
 }
