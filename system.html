@@ -30,13 +30,15 @@
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
 
-      ctx.globalAlpha = 0.3;
-      //ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.2;
+      ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
-      ctx.lineCap = 'butt';
+      //ctx.lineCap = 'butt';
 
-      ctx.strokeStyle = 'rgba(255,255,255,1)';
-      ctx.fillColor = 'yellow';
+      ctx.strokeStyle = 'rgb(0,165,227)';
+      ctx.fillStyle = 'rgb(0,165,227)';
+
+      Particle.prototype.fillColor = 'yellow';
 
       var particles = [];
       var particlesInSet = 100;
@@ -45,10 +47,8 @@
 
       var target;
 
-      var friction = 0.01;
-
       function setup() {
-        var p, r = 15, collide;
+        var p, r = 10, collide;
         for (var i = 0; i < particlesInSet; i++) {
           collide = false;
           p = new Particle();
@@ -58,8 +58,8 @@
           );
 
           // p.velocity = new Vector(
-          //   utils.random(-10, 10),
-          //   utils.random(-5, 5)
+          //   utils.random(-1, 1),
+          //   utils.random(-1, 1)
           // );
 
           p.radius = r;
@@ -73,7 +73,6 @@
           }
 
           if (!collide) {
-            p.fillColor = 'yellow';
             p.maxSpeed = 10;
             p.constrainToWindow = true;
             p.draw(ctx);
@@ -85,7 +84,6 @@
         target = new Particle(canvas.width / 2, canvas.height / 2);
         target.radius = 100;
         target.mass = 100;
-        target.fillColor = 'yellow';
         //target.draw(ctx);
       }
 
@@ -97,13 +95,14 @@
         );
 
         a.normalize();
-        a.div(1000);
+        a.div(100);
         p1.addForce(a);
         a.mult(-1);
         p2.addForce(a);
       }
 
       function draw() {
+        ctx.fillStyle = 'hsl( ' + ((Math.sin(counter / 50) * 40) + 190) + ', 100%,50%)';
         var tx = target.position.x;
         var ty = target.position.y;
         var i, j;
@@ -112,6 +111,7 @@
         
         for (i = 0, l = particles.length; i < l; i++) {
           var p = particles[i];
+          var vertex = 0;
           
           var px = p.position.x;
           var py = p.position.y;
@@ -123,13 +123,16 @@
             ty - py
           );
 
+          var mouseDist = a.magnitude();
+
           a.normalize();
-          a.div(50);
+          a.div(100);
 
           p.addForce(a);
           p.update();
 
           ctx.beginPath();
+          ctx.moveTo(px, py);
           
           for (j = i + 1; j < l; j++) {
             p1 = particles[j];
@@ -139,13 +142,14 @@
 
             dist = d.magnitude();
 
-            if (dist < 100) {
+            if (dist < 100 && vertex < 10) {
+              vertex++;
               accelerateTowards(p, p1);
-              ctx.moveTo(px, py);
               ctx.lineTo(px + d.x, py + d.y);
+              //ctx.moveTo(px, py);
             }
 
-            if (dist < p.radius + p1.radius) {
+            if (Math.round(dist) < p.radius + p1.radius) {
 
               
               // calculate angle between velocities
@@ -153,10 +157,6 @@
               angle = Math.atan2(dy, dx);
               sin = Math.sin(angle);
               cos = Math.cos(angle);
-
-              //get velocity magnitude
-              v0 = p.velocity.magnitude();
-              v1 = p1.velocity.magnitude();
 
               // rotate p position
               x0 = 0;
@@ -174,19 +174,46 @@
               vx1 = p1.velocity.x * cos + p1.velocity.y * sin;
               vy1 = p1.velocity.y * cos - p1.velocity.x * sin;
 
+              var rvx0 = vx0;
+              var rvx1 = vx1;
+
               // collision reaction
               vxT = vx0 - vx1;
 
               vx0 = ((p.mass - p1.mass) * vx0 + 2 * p1.mass * vx1) / (p.mass + p1.mass);
               vx1 = vxT + vx0;
 
-              var absV = Math.abs(vx0) + Math.abs(vx1);
+              var absV = Math.abs(vx1) + Math.abs(vx0);
+
               var overlap = (p.radius + p1.radius) - Math.abs(x0 - x1);
 
-              x0 += vx0 / absV * overlap;
-              x1 += vx1 / absV * overlap;
+              if (absV != 0) {
+                var o1 = Math.abs(vx0) / absV * overlap;
+                var o2 = Math.abs(vx1) / absV * overlap;
 
-              // console.log(vxT);
+                x0 -= o1;
+                x1 += o2;
+
+                x0 = Math.floor(x0);
+                x1 = Math.ceil(x1);
+
+              } else {
+                x0 += vx0;
+                x1 += vx1;
+              }
+
+              var ove = Math.round((p.radius + p1.radius) - Math.abs(x0 - x1));
+
+              if (ove > 0) {
+                //if (rvx0 * rvx1 < 0) {
+                  //console.log(rvx0, rvx1, vx0, vx1, x0, x1, absV, overlap);
+                  console.log(absV, o1, o2);
+                  //console.log(x0, x1);
+                  //console.log(rvx0, rvx1, vx0, vx1);
+                  //console.log(x0, Math.round(x1), Math.round(x0 + o1), Math.round(x1 + o2), overlap);
+                  //console.log(dist, Math.round(x1) - Math.round(x0), overlap, ove);
+                //}
+              }
 
               // rotate positions back
               x0f = x0 * cos - y0 * sin;
@@ -212,16 +239,25 @@
           }
 
           ctx.closePath();
-          ctx.stroke();
-          
-          p.draw(ctx);
+
+          if (vertex > 2) {
+            //ctx.stroke();
+            ctx.fill();
+          }
+
+          if (mouseDist < 200) {
+            p.draw(ctx);
+          }
         };
       }
 
       setup();
 
       var anim = new AnimationFrame(function() {
-        draw();        
+        //if (counter % 2 === 0) 
+          draw(); 
+        counter++;
+
       });
 
       document.body.addEventListener('mousemove', function(evt) {
