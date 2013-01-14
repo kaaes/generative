@@ -102,6 +102,7 @@
       }
 
       function draw() {
+
         ctx.fillStyle = 'hsl( ' + ((Math.sin(counter / 50) * 40) + 190) + ', 100%,50%)';
         var tx = target.position.x;
         var ty = target.position.y;
@@ -240,16 +241,18 @@
 
           ctx.closePath();
 
-          if (vertex > 2) {
+          if (vertex > 2 && mouseDown) {
             //ctx.stroke();
             ctx.fill();
           }
 
-          if (mouseDist < 200) {
+          if (!mouseDown) {
             p.draw(ctx);
           }
         };
       }
+
+      var mouseDown = false;
 
       setup();
 
@@ -263,6 +266,14 @@
       document.body.addEventListener('mousemove', function(evt) {
         target.position.x = evt.clientX;
         target.position.y = evt.clientY;
+      })
+
+      document.body.addEventListener('mousedown', function(){
+        mouseDown = true;
+      })
+
+      document.body.addEventListener('mouseup', function(){
+        mouseDown = false;
       })
 
 
