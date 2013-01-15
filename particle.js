@@ -66,6 +66,13 @@ Particle.prototype.update = function(ctx) {
   }
 };
 
+Particle.prototype.limitVelocity = function() {
+  if (this.maxSpeed && this.velocity.magnitude() > this.maxSpeed) {
+    this.velocity.normalize();
+    this.velocity.mult(this.maxSpeed);
+  }
+}
+
 Particle.prototype.draw = function(ctx) {
   ctx.save();
   ctx.fillStyle = this.fillColor;

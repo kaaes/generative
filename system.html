@@ -35,7 +35,7 @@
       ctx.lineWidth = 1;
       //ctx.lineCap = 'butt';
 
-      ctx.strokeStyle = 'rgb(0,165,227)';
+      ctx.strokeStyle = 'white';
       ctx.fillStyle = 'rgb(0,165,227)';
 
       Particle.prototype.fillColor = 'yellow';
@@ -58,8 +58,8 @@
           );
 
           // p.velocity = new Vector(
-          //   utils.random(-1, 1),
-          //   utils.random(-1, 1)
+          //   utils.random(-5, 5),
+          //   utils.random(-5, 5)
           // );
 
           p.radius = r;
@@ -73,7 +73,7 @@
           }
 
           if (!collide) {
-            p.maxSpeed = 10;
+            p.maxSpeed = 7;
             p.constrainToWindow = true;
             p.draw(ctx);
 
@@ -101,27 +101,123 @@
         p2.addForce(a);
       }
 
+      function checkCollision(p0, p1) {
+        var px = p0.position.x;
+        var py = p0.position.y;
+
+        var d, p1, dist, dx, dy, angle, sin, cos,
+            x0, y0, x1, y1, vx0, vx1, vxT, vyT,
+            x1f, y1f, x0f, y0f, v0, v1;
+
+        dx = p1.position.x - px;
+        dy = p1.position.y - py;
+        d = new Vector(dx, dy);
+
+        dist = d.magnitude();
+
+        if (Math.round(dist) < p0.radius + p1.radius) {
+
+          
+          // calculate angle between velocities
+          // and stuff
+          angle = Math.atan2(dy, dx);
+          sin = Math.sin(angle);
+          cos = Math.cos(angle);
+
+          // rotate p position
+          x0 = 0;
+          y0 = 0;
+
+          // rotate p1 position
+          x1 = dx * cos + dy * sin;
+          y1 = dy * cos - dx * sin;
+
+          // rotate p velocity
+          vx0 = p0.velocity.x * cos + p0.velocity.y * sin;
+          vy0 = p0.velocity.y * cos - p0.velocity.x * sin;
+
+          // rotate p1 velocity
+          vx1 = p1.velocity.x * cos + p1.velocity.y * sin;
+          vy1 = p1.velocity.y * cos - p1.velocity.x * sin;
+
+          var rvx0 = vx0;
+          var rvx1 = vx1;
+
+          // collision reaction
+          vxT = vx0 - vx1;
+
+          vx0 = ((p0.mass - p1.mass) * vx0 + 2 * p1.mass * vx1) / (p0.mass + p1.mass);
+          vx1 = vxT + vx0;
+
+          var absV = Math.abs(vx1) + Math.abs(vx0);
+
+          var overlap = (p0.radius + p1.radius) - Math.abs(x0 - x1);
+
+          if (absV != 0) {
+            var o1 = Math.abs(vx0) / absV * overlap;
+            var o2 = Math.abs(vx1) / absV * overlap;
+
+            x0 -= o1;
+            x1 += o2;
+
+            //x0 = Math.floor(x0);
+            //x1 = Math.ceil(x1);
+
+          } else {
+            x0 += vx0;
+            x1 += vx1;
+          }
+
+          var ove = ((p0.radius + p1.radius) - Math.abs(x0 - x1));
+
+          if (ove > 0) {
+            //if (rvx0 * rvx1 < 0) {
+              //console.log(rvx0, rvx1, vx0, vx1, x0, x1, absV, overlap);
+              console.log(absV, o1, o2);
+              console.log(ove);
+            //}
+          }
+
+          // rotate positions back
+          x0f = x0 * cos - y0 * sin;
+          y0f = y0 * cos + x0 * sin;
+
+          x1f = x1 * cos - y1 * sin;
+          y1f = y1 * cos + x1 * sin;
+
+          // //adjust positions to screen positions
+          p1.position.x = p0.position.x + x1f;
+          p1.position.y = p0.position.y + y1f;
+
+          p0.position.x += x0f;
+          p0.position.y += y0f;
+
+          //rotate velocities back
+          p0.velocity.x = vx0 * cos - vy0 * sin;
+          p0.velocity.y = vy0 * cos + vx0 * sin;
+
+          p1.velocity.x = vx1 * cos - vy1 * sin;
+          p1.velocity.y = vy1 * cos + vx1 * sin;
+
+          p0.limitVelocity();
+          p1.limitVelocity();
+        }
+
+      }
+
       function draw() {
 
         ctx.fillStyle = 'hsl( ' + ((Math.sin(counter / 50) * 40) + 190) + ', 100%,50%)';
         var tx = target.position.x;
         var ty = target.position.y;
-        var i, j;
-        
+        var i, j, l;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        for (i = 0, l = particles.length; i < l; i++) {
-          var p = particles[i];
-          var vertex = 0;
-          
-          var px = p.position.x;
-          var py = p.position.y;
 
-          var d, p1, dist, dx, dy, angle, sin, cos, x0, y0, x1, y1, vx0, vx1, vxT, vyT, x1f, y1f, x0f, y0f, v0, v1;
-
+        particles.forEach(function(p) {
           var a = new Vector(
-            tx - px,
-            ty - py
+           tx - p.position.x,
+           ty - p.position.y
           );
 
           var mouseDist = a.magnitude();
@@ -131,133 +227,60 @@
 
           p.addForce(a);
           p.update();
+        })
+
+        for (i = 0, l = particles.length; i < l; i++) {
+          var p0 = particles[i];
+          var vertex = 0;
+          var dist = 0, dx, dy;
 
           ctx.beginPath();
-          ctx.moveTo(px, py);
-          
+          ctx.moveTo(p0.position.x, p0.position.y);
+
           for (j = i + 1; j < l; j++) {
             p1 = particles[j];
-            dx = p1.position.x - px;
-            dy = p1.position.y - py;
-            d = new Vector(dx, dy);
+            dx = p1.position.x - p0.position.x,
+            dy = p1.position.y - p0.position.y,
+            dist = Math.sqrt(dx * dx + dy * dy);
 
-            dist = d.magnitude();
+            if (dist < 100) {
+              accelerateTowards(p0, p1);
 
-            if (dist < 100 && vertex < 10) {
-              vertex++;
-              accelerateTowards(p, p1);
-              ctx.lineTo(px + d.x, py + d.y);
-              //ctx.moveTo(px, py);
-            }
+              if (mouseDown && vertex < 10) {
+                vertex++;
+                ctx.lineTo(p1.position.x, p1.position.y);
 
-            if (Math.round(dist) < p.radius + p1.radius) {
-
-              
-              // calculate angle between velocities
-              // and stuff
-              angle = Math.atan2(dy, dx);
-              sin = Math.sin(angle);
-              cos = Math.cos(angle);
-
-              // rotate p position
-              x0 = 0;
-              y0 = 0;
-
-              // rotate p1 position
-              x1 = dx * cos + dy * sin;
-              y1 = dy * cos - dx * sin;
-
-              // rotate p velocity
-              vx0 = p.velocity.x * cos + p.velocity.y * sin;
-              vy0 = p.velocity.y * cos - p.velocity.x * sin;
-
-              // rotate p1 velocity
-              vx1 = p1.velocity.x * cos + p1.velocity.y * sin;
-              vy1 = p1.velocity.y * cos - p1.velocity.x * sin;
-
-              var rvx0 = vx0;
-              var rvx1 = vx1;
-
-              // collision reaction
-              vxT = vx0 - vx1;
-
-              vx0 = ((p.mass - p1.mass) * vx0 + 2 * p1.mass * vx1) / (p.mass + p1.mass);
-              vx1 = vxT + vx0;
-
-              var absV = Math.abs(vx1) + Math.abs(vx0);
-
-              var overlap = (p.radius + p1.radius) - Math.abs(x0 - x1);
-
-              if (absV != 0) {
-                var o1 = Math.abs(vx0) / absV * overlap;
-                var o2 = Math.abs(vx1) / absV * overlap;
-
-                x0 -= o1;
-                x1 += o2;
-
-                x0 = Math.floor(x0);
-                x1 = Math.ceil(x1);
-
-              } else {
-                x0 += vx0;
-                x1 += vx1;
+                if (shiftKey) {
+                  ctx.moveTo(p0.position.x, p0.position.y);
+                }
               }
-
-              var ove = Math.round((p.radius + p1.radius) - Math.abs(x0 - x1));
-
-              if (ove > 0) {
-                //if (rvx0 * rvx1 < 0) {
-                  //console.log(rvx0, rvx1, vx0, vx1, x0, x1, absV, overlap);
-                  console.log(absV, o1, o2);
-                  //console.log(x0, x1);
-                  //console.log(rvx0, rvx1, vx0, vx1);
-                  //console.log(x0, Math.round(x1), Math.round(x0 + o1), Math.round(x1 + o2), overlap);
-                  //console.log(dist, Math.round(x1) - Math.round(x0), overlap, ove);
-                //}
-              }
-
-              // rotate positions back
-              x0f = x0 * cos - y0 * sin;
-              y0f = y0 * cos + x0 * sin;
-
-              x1f = x1 * cos - y1 * sin;
-              y1f = y1 * cos + x1 * sin;
-
-              //adjust positions to screen positions
-              p1.position.x = p.position.x + x1f;
-              p1.position.y = p.position.y + y1f;
-
-              p.position.x += x0f;
-              p.position.y += y0f;
-
-              //rotate velocities back
-              p.velocity.x = vx0 * cos - vy0 * sin;
-              p.velocity.y = vy0 * cos + vx0 * sin;
-
-              p1.velocity.x = vx1 * cos - vy1 * sin;
-              p1.velocity.y = vy1 * cos + vx1 * sin;
             }
+            checkCollision(p0, p1);
           }
 
           ctx.closePath();
 
           if (vertex > 2 && mouseDown) {
-            //ctx.stroke();
-            ctx.fill();
+            if (shiftKey) {
+              ctx.stroke();
+            } else {
+              ctx.fill();
+            }
           }
 
           if (!mouseDown) {
-            p.draw(ctx);
+            p0.draw(ctx);
           }
         };
       }
 
       var mouseDown = false;
+      var shiftKey = false;
 
       setup();
 
       var anim = new AnimationFrame(function() {
-        //if (counter % 2 === 0) 
+        //if (counter % 5 === 0)
           draw(); 
         counter++;
 
@@ -268,12 +291,14 @@
         target.position.y = evt.clientY;
       })
 
-      document.body.addEventListener('mousedown', function(){
+      document.body.addEventListener('mousedown', function(evt){
         mouseDown = true;
+        shiftKey = evt.shiftKey;
       })
 
       document.body.addEventListener('mouseup', function(){
         mouseDown = false;
+        shiftKey = false;
       })
 
 
