@@ -171,11 +171,9 @@
           var ove = ((p0.radius + p1.radius) - Math.abs(x0 - x1));
 
           if (ove > 0) {
-            //if (rvx0 * rvx1 < 0) {
-              //console.log(rvx0, rvx1, vx0, vx1, x0, x1, absV, overlap);
-              console.log(absV, o1, o2);
-              console.log(ove);
-            //}
+            //console.log(rvx0, rvx1, vx0, vx1, x0, x1, absV, overlap);
+            //console.log(absV, o1, o2);
+            //console.log(ove);
           }
 
           // rotate positions back
@@ -185,7 +183,7 @@
           x1f = x1 * cos - y1 * sin;
           y1f = y1 * cos + x1 * sin;
 
-          // //adjust positions to screen positions
+          // adjust positions to screen positions
           p1.position.x = p0.position.x + x1f;
           p1.position.y = p0.position.y + y1f;
 
