@@ -102,20 +102,23 @@
       }
 
       function checkCollision(p0, p1) {
-        var px = p0.position.x;
-        var py = p0.position.y;
+        var pos0 = p0.position;
+        var pos1 = p1.position;
+
+        var vel0 = p0.velocity;
+        var vel1 = p1.velocity;
 
         var d, p1, dist, dx, dy, angle, sin, cos,
             x0, y0, x1, y1, vx0, vx1, vxT, vyT,
             x1f, y1f, x0f, y0f, v0, v1;
 
-        dx = p1.position.x - px;
-        dy = p1.position.y - py;
+        dx = pos1.x - pos0.x;
+        dy = pos1.y - pos0.y;
         d = new Vector(dx, dy);
 
         dist = d.magnitude();
 
-        if (Math.round(dist) < p0.radius + p1.radius) {
+        if (dist < p0.radius + p1.radius) {
 
           
           // calculate angle between velocities
@@ -133,12 +136,12 @@
           y1 = dy * cos - dx * sin;
 
           // rotate p velocity
-          vx0 = p0.velocity.x * cos + p0.velocity.y * sin;
-          vy0 = p0.velocity.y * cos - p0.velocity.x * sin;
+          vx0 = vel0.x * cos + vel0.y * sin;
+          vy0 = vel0.y * cos - vel0.x * sin;
 
           // rotate p1 velocity
-          vx1 = p1.velocity.x * cos + p1.velocity.y * sin;
-          vy1 = p1.velocity.y * cos - p1.velocity.x * sin;
+          vx1 = vel1.x * cos + vel1.y * sin;
+          vy1 = vel1.y * cos - vel1.x * sin;
 
           var rvx0 = vx0;
           var rvx1 = vx1;
@@ -160,8 +163,8 @@
             x0 -= o1;
             x1 += o2;
 
-            //x0 = Math.floor(x0);
-            //x1 = Math.ceil(x1);
+            x0 = ~~x0;
+            x1 = ~~x1 + 1;
 
           } else {
             x0 += vx0;
@@ -184,21 +187,18 @@
           y1f = y1 * cos + x1 * sin;
 
           // adjust positions to screen positions
-          p1.position.x = p0.position.x + x1f;
-          p1.position.y = p0.position.y + y1f;
+          pos1.x = pos0.x + x1f;
+          pos1.y = pos0.y + y1f;
 
-          p0.position.x += x0f;
-          p0.position.y += y0f;
+          pos0.x += x0f;
+          pos0.y += y0f;
 
           //rotate velocities back
-          p0.velocity.x = vx0 * cos - vy0 * sin;
-          p0.velocity.y = vy0 * cos + vx0 * sin;
+          vel0.x = vx0 * cos - vy0 * sin;
+          vel0.y = vy0 * cos + vx0 * sin;
 
-          p1.velocity.x = vx1 * cos - vy1 * sin;
-          p1.velocity.y = vy1 * cos + vx1 * sin;
-
-          p0.limitVelocity();
-          p1.limitVelocity();
+          vel1.x = vx1 * cos - vy1 * sin;
+          vel1.y = vy1 * cos + vx1 * sin;
         }
 
       }
@@ -232,13 +232,17 @@
           var vertex = 0;
           var dist = 0, dx, dy;
 
+          var pos0 = p0.position;
+          var pos1;
+
           ctx.beginPath();
           ctx.moveTo(p0.position.x, p0.position.y);
 
           for (j = i + 1; j < l; j++) {
             p1 = particles[j];
-            dx = p1.position.x - p0.position.x,
-            dy = p1.position.y - p0.position.y,
+            pos1 = p1.position;
+            dx = pos1.x - pos0.x,
+            dy = pos1.y - pos0.y,
             dist = Math.sqrt(dx * dx + dy * dy);
 
             if (dist < 100) {
@@ -246,10 +250,10 @@
 
               if (mouseDown && vertex < 10) {
                 vertex++;
-                ctx.lineTo(p1.position.x, p1.position.y);
+                ctx.lineTo(pos1.x, pos1.y);
 
                 if (shiftKey) {
-                  ctx.moveTo(p0.position.x, p0.position.y);
+                  ctx.moveTo(pos0.x, pos0.y);
                 }
               }
             }
@@ -267,6 +271,7 @@
           }
 
           if (!mouseDown) {
+            p0.limitVelocity();
             p0.draw(ctx);
           }
         };
