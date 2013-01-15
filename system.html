@@ -13,13 +13,18 @@
     width: 100%;
     height: 100%;
   }
-  #params {
+  #speedbox {
     position: absolute;
-    padding: 20px;
+    bottom: 0;
+    right: 0;
+    color: #fff;
+    font-size: 14px;
+    padding: .5em;
   }
   </style>
   <body>
     <canvas id="canvas"></canvas>
+    <div id="speedbox"></div>
     <script src="animation.js"></script>
     <script src="vector.js"></script>
     <script src="particle.js"></script>
@@ -31,7 +36,7 @@
       canvas.height = window.innerHeight;
 
       ctx.globalAlpha = 0.2;
-      ctx.globalCompositeOperation = 'lighter';
+      //ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       //ctx.lineCap = 'butt';
 
@@ -84,7 +89,8 @@
         target = new Particle(canvas.width / 2, canvas.height / 2);
         target.radius = 100;
         target.mass = 100;
-        //target.draw(ctx);
+
+        speedbox.innerHTML = particles[0].maxSpeed;
       }
 
       function accelerateTowards(p1, p2) {
@@ -279,6 +285,7 @@
 
       var mouseDown = false;
       var shiftKey = false;
+      var speedbox = document.getElementById('speedbox');
 
       setup();
 
@@ -286,7 +293,6 @@
         //if (counter % 5 === 0)
           draw(); 
         counter++;
-
       });
 
       document.body.addEventListener('mousemove', function(evt) {
@@ -303,6 +309,33 @@
         mouseDown = false;
         shiftKey = false;
       })
+
+      document.body.addEventListener('keydown', function(evt) {
+        //219 [ 221 ]
+        switch (evt.keyCode) {
+          case 219:
+            particles.forEach(function(p) {
+              if(p.maxSpeed > 2) {
+                p.maxSpeed -= 0.5;
+              }
+            });
+            speedbox.innerHTML = particles[0].maxSpeed;
+            break;
+
+          case 221:
+            particles.forEach(function(p) {
+              if(p.maxSpeed < 10) {
+                p.maxSpeed += 0.5;
+              }
+            });
+            speedbox.innerHTML = particles[0].maxSpeed;
+            break;
+
+          default:
+            break;
+        }
+      })
+
 
 
     })();
