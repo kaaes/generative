@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  #speedbox {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    color: #fff;
+    font-size: 14px;
+    padding: .5em;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div id="speedbox"></div>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script src="utils.js"></script>
+    <script src="noise_simplex.js"></script>
+    <script>
+    (function() {
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var w = canvas.width;
+      var h = canvas.height;
+
+      ctx.globalAlpha = 0.99;
+      //ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = 1;
+      //ctx.lineCap = 'butt';
+
+      ctx.strokeStyle = 'white';
+      ctx.fillStyle = 'rgb(0,165,227)';
+
+      Particle.prototype.fillColor = 'yellow';
+
+      var counter = 0;
+      var noise;
+
+      var gridSize = 20;
+      var angle = -Math.PI / 2;
+      var x = 0;
+      var y = 0;
+
+      var items = [];
+
+      function setup() {
+        noise = new SimplexNoise();
+
+        var i = 0;
+        while (y < h) {
+
+          items.push({
+            x: x,
+            y: y,
+            angle: noise.noise(i, 0, 0) * 2 * Math.PI,
+            noise: i
+          });
+
+          if (x < canvas.width) {
+            x += 25;
+          } else {
+            x = 0;
+            y += 25;
+          }
+          i += 0.01;
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+
+        for (var i = 0; i < items.length; i++) {
+          angle = noise.noise(items[i].noise, 0, 0) * 2 * Math.PI;
+
+          ctx.fillStyle = 'hsl(' + (angle / (2 * Math.PI) * 360) + ', 50%, 50%)';
+          //ctx.strokeStyle = 'hsl(' + (angle / (2 * Math.PI) * 360) + ', 100%, 50%)';
+
+          drawArrow(items[i].x, items[i].y, angle, 25);
+
+          items[i].noise += 0.005;
+        }
+      }
+
+      function drawLine(x, y, angle, length) {
+        ctx.save();
+        ctx.translate(x + 24, y + 24);
+        ctx.rotate(angle);
+        ctx.beginPath();
+        ctx.moveTo(-12, 0);
+        ctx.lineTo(12, 0);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      function drawArrow(x, y, angle, maxSize) {
+        var s = maxSize / 50;
+        ctx.save();
+        ctx.translate(x + 20, y + 20);
+        ctx.rotate(angle);
+        ctx.scale(s, s);
+        ctx.beginPath();
+        ctx.moveTo(-20, -5);
+        ctx.lineTo(10, -5);
+        ctx.lineTo(10, -10);
+        ctx.lineTo(20, 0);
+        ctx.lineTo(10, 10);
+        ctx.lineTo(10, 5);
+        ctx.lineTo(-20, 5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      setup();
+
+      var anim = new AnimationFrame(function() {
+        //if (counter % 5 === 0)
+        // if (y < canvas.height)
+        draw(); 
+        counter++;
+      });
+
+    })();
+    </script>
+  </body>
+</html>
