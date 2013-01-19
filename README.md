@@ -3,7 +3,7 @@ Generative
 
 Canvas playground:
 
-* [Gotta make ome noise](http://kaaes.github.com/generative/noise.html)
+* [Make some noise](http://kaaes.github.com/generative/noise.html)
 * [Pretty balls](http://kaaes.github.com/generative/system.html)
 * [Gut feelings](http://kaaes.github.com/generative/agents.html)
 * [Sparks & Wires](http://kaaes.github.com/generative/sparks.html)
