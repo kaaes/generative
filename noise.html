@@ -39,7 +39,7 @@
       var w = canvas.width;
       var h = canvas.height;
 
-      ctx.globalAlpha = 0.99;
+      ctx.globalAlpha = 0.8;
       //ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 1;
       //ctx.lineCap = 'butt';
@@ -69,7 +69,8 @@
             x: x,
             y: y,
             angle: noise.noise(i, 0, 0) * 2 * Math.PI,
-            noise: i
+            noiseX: x / 1000,
+            noiseY: y / 1000
           });
 
           if (x < canvas.width) {
@@ -86,14 +87,15 @@
         ctx.clearRect(0, 0, w, h);
 
         for (var i = 0; i < items.length; i++) {
-          angle = noise.noise(items[i].noise, 0, 0) * 2 * Math.PI;
+          angle = noise.noise(items[i].noiseX, items[i].noiseY, 0) * 2 * Math.PI;
 
-          ctx.fillStyle = 'hsl(' + (angle / (2 * Math.PI) * 360) + ', 50%, 50%)';
-          //ctx.strokeStyle = 'hsl(' + (angle / (2 * Math.PI) * 360) + ', 100%, 50%)';
+          //ctx.fillStyle = 'hsl(' + (Math.sin(angle) * 30 + 30) + ', 100%, 50%)';
+          ctx.fillStyle = 'hsl(' + (angle / (2 * Math.PI) * 360) + ', 100%, 50%)';
 
           drawArrow(items[i].x, items[i].y, angle, 25);
 
-          items[i].noise += 0.005;
+          items[i].noiseX += 0.005;
+          items[i].noiseY += 0.005;
         }
       }
 
