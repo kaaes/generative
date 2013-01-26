@@ -3,6 +3,7 @@ Generative
 
 Canvas playground:
 
+* [Make more noise](http://kaaes.github.com/generative/noise2.html)
 * [Make some noise](http://kaaes.github.com/generative/noise.html)
 * [Pretty balls](http://kaaes.github.com/generative/system.html)
 * [Gut feelings](http://kaaes.github.com/generative/agents.html)
