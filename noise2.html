@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head></head>
+  <style>
+  html, 
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  #canvas {
+    background: #000;
+    width: 100%;
+    height: 100%;
+  }
+  button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #000;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    text-transform: uppercase;
+    border: solid 1px #666;
+    border-radius: 3px;
+    padding: .2em .5em;
+    box-shadow: 0 6px 10px rgba(255,255,255,.3) inset;
+  }
+
+  button:hover {
+    background: #222;
+  }
+  </style>
+  <body>
+    <canvas id="canvas"></canvas>
+    <button id="randomize">Randomize</button>
+    <script src="dat.gui.min.js"></script>
+    <script src="animation.js"></script>
+    <script src="vector.js"></script>
+    <script src="particle.js"></script>
+    <script src="utils.js"></script>
+    <script src="noise_simplex.js"></script>
+    <script>
+    (function() {
+      var button = document.getElementById('randomize');
+      var gui = new dat.GUI();
+      var noiz = {
+        color: 'rgba(0, 165, 227, .2)',
+        agents: utils.random(100, 1000),
+        noiseScaleX: 175,
+        noiseScaleY: 200,
+        randomnessX: 0,
+        randomnessY: 0,
+        noiseStrength: 1,
+        step: 1,
+        speed: 20,
+        iterations: 250
+      };
+
+      var handles = {
+        color: gui.addColor(noiz, 'color').listen(),
+        agents: gui.add(noiz, 'agents', 1, 5000).listen(),
+        noiseScaleX: gui.add(noiz, 'noiseScaleX', 0, 500).listen(),
+        noiseScaleY: gui.add(noiz, 'noiseScaleY', 0, 500).listen(),
+        randomnessX: gui.add(noiz, 'randomnessX', 0, 50).listen(),
+        randomnessY: gui.add(noiz, 'randomnessY', 0, 50).listen(),
+        noiseStrength: gui.add(noiz, 'noiseStrength', 1, 10).listen(),
+        step: gui.add(noiz, 'step', -5, 5).listen(),
+        speed: gui.add(noiz, 'speed', 1, 50).listen(),
+        iterations: gui.add(noiz, 'iterations', 0, 500).listen(),
+      }
+
+      var events = Object.keys(handles);
+
+      events.forEach(function(h){
+        handles[h].onFinishChange(reset);
+      });
+
+      handles.color.onChange(reset);
+      
+      var ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      var w = canvas.width;
+      var h = canvas.height;
+
+      //ctx.globalCompositeOperation = 'lighter';
+      ctx.lineWidth = 1;
+
+      ctx.fillStyle = 'rgb(0,165,227)';
+
+      Particle.prototype.fillColor = 'yellow';
+
+      var counter = 0;
+      var noise;
+
+      var gridSize = 20;
+      var angle = -Math.PI / 2;
+      var x = 0;
+      var y = 0;
+
+      var items = [];
+
+      function randomize() {
+        noiz.color = 'hsla(' + utils.random(0, 360) + ', 100%, 50%, .2)';
+        noiz.agents = utils.random(100, 1000);
+        noiz.noiseScaleX =  utils.random(0, 500);
+        noiz.noiseScaleY = utils.random(0, 500);
+        noiz.randomnessX = utils.random(0, 15);
+        noiz.randomnessY = utils.random(0, 15);
+        noiz.noiseStrength = utils.random(1, 10);
+        noiz.step = utils.random(-5, 5);
+        noiz.iterations = utils.random(100, 200);
+
+        if (!noiz.step) noiz.step = 1;
+
+        reset();
+      }
+
+      function reset() {
+        var i = 0;
+        counter = 0;
+        ctx.clearRect(0, 0, w, h);
+        items = [];
+        setup();
+        anim.start();
+      }
+
+      function setup() {
+        noise = new SimplexNoise();
+        ctx.strokeStyle = noiz.color;
+        var i = 0, particle;
+        while (i < noiz.agents) {
+          particle = new Vector(utils.random(0, w), utils.random(0, h));
+          particle.prev = particle.copy();
+          items.push(particle);
+          i++;
+        }
+      }
+
+      function draw() {
+        var item, x, y;
+        ctx.beginPath();
+        for (var i = 0; i < items.length; i++) {
+          item = items[i];
+          angle = noise.noise(
+            item.x / utils.random(noiz.noiseScaleX - noiz.randomnessX, noiz.noiseScaleX),
+            item.y / utils.random(noiz.noiseScaleY - noiz.randomnessY, noiz.noiseScaleY),
+            0) * noiz.noiseStrength;
+
+          x = Math.cos(angle) * noiz.step;
+          y = Math.sin(angle) * noiz.step;
+
+          item.x += x + (x < 0 ? -0.5 : 0.5) >> 0;
+          item.y += y + (y < 0 ? -0.5 : 0.5) >> 0;
+
+          //Math.round(n) == n+(n<0?-0.5:+0.5)>>0
+
+          if (item.x > w + 10 ||
+              item.x < -10 ||
+              item.y > h + 10 ||
+              item.y < -10) {
+            item.x = utils.random(0, w);
+            item.y = utils.random(0, h);
+            item.prev.x = item.x;
+            item.prev.y = item.y;
+          }
+
+          ctx.moveTo(item.prev.x, item.prev.y);
+          ctx.lineTo(item.x, item.y);
+
+          item.prev.x = item.x;
+          item.prev.y = item.y;
+        }
+        ctx.stroke();
+      }
+
+      function drawFrames(n) {
+        var i = 0;
+        while (i < n) {
+          draw();
+          i++;
+        }
+      }
+
+      setup();
+
+      var anim = new AnimationFrame(function() {
+        drawFrames(noiz.speed); 
+        counter++;
+
+        if (noiz.iterations && counter > noiz.iterations) {
+          this.stop();
+        }
+      });
+
+      button.addEventListener('click', randomize);
+
+    })();
+    </script>
+  </body>
+</html>
