@@ -9,7 +9,11 @@
     overflow: hidden;
   }
   #canvas {
-    background: #000;
+    background: -webkit-linear-gradient(45deg, #000, #333);
+    background: -moz-linear-gradient(45deg, #000, #333);
+    background: -o-linear-gradient(45deg, #000, #333);
+    background: -ms-linear-gradient(45deg, #000, #333);
+    background: linear-gradient(45deg, #000, #333);
     width: 100%;
     height: 100%;
   }
@@ -23,17 +27,29 @@
     font-size: 24px;
     text-transform: uppercase;
     border: solid 1px #666;
-    border-radius: 3px;
+    border-radius: 5px;
     padding: .2em .5em;
     box-shadow: 0 6px 10px rgba(255,255,255,.3) inset;
   }
-
+  #cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: -webkit-linear-gradient(rgba(60,0,0,.6), rgba(0,0,0,0));
+    background: -moz-linear-gradient(rgba(60,0,0,.6), rgba(0,0,0,0));
+    background: -o-linear-gradient(rgba(60,0,0,.6), rgba(0,0,0,0));
+    background: -ms-linear-gradient(rgba(60,0,0,.6), rgba(0,0,0,0));
+    background: linear-gradient(rgba(60,0,0,.6), rgba(0,0,0,0));
+  }
   button:hover {
     background: #222;
   }
   </style>
   <body>
     <canvas id="canvas"></canvas>
+    <div id="cover"></div>
     <button id="randomize">Randomize</button>
     <script src="js/dat.gui.min.js"></script>
     <script src="js/animation.js"></script>
@@ -46,7 +62,7 @@
       var button = document.getElementById('randomize');
       var gui = new dat.GUI();
       var noiz = {
-        color: 'rgba(0, 165, 227, .2)',
+        color: 'rgba(0, 165, 227, .3)',
         agents: utils.random(100, 1000),
         noiseScaleX: 175,
         noiseScaleY: 200,
