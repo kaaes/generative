@@ -39,9 +39,9 @@ ClassicalNoise.prototype.fade = function(t) {
   // Classic Perlin noise, 3D version 
 ClassicalNoise.prototype.noise = function(x, y, z) { 
   // Find unit grid cell containing point 
-  var X = Math.floor(x); 
-  var Y = Math.floor(y); 
-  var Z = Math.floor(z); 
+  var X = x + (x < 0 ? -1 : 0) >> 0;
+  var Y = y + (y < 0 ? -1 : 0) >> 0;
+  var Z = z + (z < 0 ? -1 : 0) >> 0;
   
   // Get relative xyz coordinates of point within that cell 
   x = x - X; 
