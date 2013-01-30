@@ -10,7 +10,7 @@ window.mozCancelRequestAnimationFrame ||
 window.oCancelRequestAnimationFrame ||
 window.msCancelRequestAnimationFrame;
 
-function AnimationFrame(frameCallback) {
+function AnimationFrame(frameCallback, deferStart) {
 	if (!requestAnimationFrame || !cancelRequestAnimationFrame) {
 		throw new Error('Animation frame support required!');
 	}
@@ -23,7 +23,9 @@ function AnimationFrame(frameCallback) {
   this.run = this.run.bind(this);
 	this.stop = this.stop.bind(this);
 	
-  this.start();
+  if (!deferStart) {
+    this.start();
+  }
 }
 
 AnimationFrame.prototype.run = function() {

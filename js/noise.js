@@ -8,7 +8,7 @@
  * You can pass in a random number generator object if you like.
  * It is assumed to have a random() method.
  */
-var ClassicalNoise = function(r) { // Classic Perlin noise in 3D, for comparison 
+var ClassicalNoise = function(r, w, h) { // Classic Perlin noise in 3D, for comparison 
   if (r == undefined) r = Math;
   this.grad3 = [[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0], 
                                  [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1], 
@@ -22,6 +22,17 @@ var ClassicalNoise = function(r) { // Classic Perlin noise in 3D, for comparison
   for(var i=0; i<512; i++) {
     this.perm[i]=this.p[i & 255];
   }
+
+  this._w = w;
+  this._h = h;
+  this._cache = {};
+
+  // this._buffer = new ArrayBuffer(16);
+  // this._cache = new Uint16Array(this._buffer);
+
+  // for (var i = 0; i < this._cache.length; i++) {
+  //   this._cache[i] = i * 2;
+  // }
 };
 
 ClassicalNoise.prototype.dot = function(g, x, y, z) { 
@@ -37,7 +48,12 @@ ClassicalNoise.prototype.fade = function(t) {
 };
 
   // Classic Perlin noise, 3D version 
-ClassicalNoise.prototype.noise = function(x, y, z) { 
+ClassicalNoise.prototype.noise = function(x, y, z) {
+  var index = x + ':' + y; 
+  if (this._cache[index]) {
+    // console.log('cached');
+    return this._cache[index];
+  }
   // Find unit grid cell containing point 
   var X = x + (x < 0 ? -1 : 0) >> 0;
   var Y = y + (y < 0 ? -1 : 0) >> 0;
@@ -46,7 +62,7 @@ ClassicalNoise.prototype.noise = function(x, y, z) {
   // Get relative xyz coordinates of point within that cell 
   x = x - X; 
   y = y - Y; 
-  z = z - Z; 
+  z = z - Z;
   
   // Wrap the integer cells at 255 (smaller integer period can be introduced here) 
   X = X & 255; 
@@ -95,6 +111,8 @@ ClassicalNoise.prototype.noise = function(x, y, z) {
   var nxy1 = this.mix(nx01, nx11, v); 
   // Interpolate the two last results along z 
   var nxyz = this.mix(nxy0, nxy1, w); 
+
+  this._cache[index] = nxyz;
 
   return nxyz; 
 };

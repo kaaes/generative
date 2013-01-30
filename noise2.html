@@ -11,13 +11,21 @@
     overflow: hidden;
   }
   #canvas {
-    background: -webkit-linear-gradient(45deg, #000, #333);
+    background-color: #000;
+    background: -webkit-linear-gradient(45deg, #000, rgba(30,20,0,1));
     background: -moz-linear-gradient(45deg, #000, #333);
     background: -o-linear-gradient(45deg, #000, #333);
     background: -ms-linear-gradient(45deg, #000, #333);
     background: linear-gradient(45deg, #000, #333);
     width: 100%;
     height: 100%;
+  }
+  #c2, #img {
+    position: absolute;
+    top: -99px;
+    height: 1px;
+    width: 1px;
+    background: transparent;
   }
   button {
     font-family: 'Stardos Stencil', Helvetica, Arial, sans-serif;
@@ -52,7 +60,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: -webkit-linear-gradient(120deg, rgba(30,20,0,.5) 20%, rgba(0,0,0,0), rgba(0,30,0,.5) 80%);
+    background: -webkit-linear-gradient(120deg, rgba(30,0,0,.5) 20%, rgba(0,0,0,0), rgba(0,30,0,.5) 80%);
     background: -moz-linear-gradient(120deg, rgba(30,20,0,.5) 20%, rgba(0,0,0,0), rgba(0,30,0,.5) 80%);
     background: -o-linear-gradient(120deg, rgba(30,20,0,.5) 20%, rgba(0,0,0,0), rgba(0,30,0,.5) 80%);
     background: -ms-linear-gradient(120deg, rgba(30,20,0,.5) 20%, rgba(0,0,0,0), rgba(0,30,0,.5) 80%);
@@ -62,11 +70,10 @@
   </head>
   <body>
     <canvas id="canvas"></canvas>
+    <canvas id="c2"></canvas>
+    <img id="img" />
     <div id="cover"></div>
     <button id="randomize">make more noise</button>
-    <div>
-    <p>what is it?</p>
-    </div>
     <script src="js/dat.gui.min.js"></script>
     <script src="js/animation.js"></script>
     <script src="js/vector.js"></script>
@@ -75,10 +82,16 @@
     <script>
     (function() {
       var button = document.getElementById('randomize');
+      var pImg = document.getElementById('c2');
+      var img = document.getElementById('img');
+      pImg.width = 1;
+      pImg.height = 1;
+
+      var ci = pImg.getContext('2d');
       var gui = new dat.GUI();
       var noiz = {
         color: 'rgba(0, 165, 227, 1)',
-        agents: utils.random(100, 1000),
+        agents: 1000,
         noiseScaleX: 175,
         noiseScaleY: 200,
         randomnessX: 0,
@@ -86,9 +99,8 @@
         noiseStrength: 1,
         stepX: 1,
         stepY: 1,
-        speed: 20,
-        iterations: 250,
-        connect: true
+        iterations: 1000,
+        connect: false
       };
 
       var handles = {
@@ -101,8 +113,7 @@
         noiseStrength: gui.add(noiz, 'noiseStrength', 1, 10).step(1).listen(),
         stepX: gui.add(noiz, 'stepX', 0, 25).step(1).listen(),
         stepY: gui.add(noiz, 'stepY', 0, 25).step(1).listen(),
-        speed: gui.add(noiz, 'speed', 1, 50).step(1).listen(),
-        iterations: gui.add(noiz, 'iterations', 0, 500).step(1).listen(),
+        iterations: gui.add(noiz, 'iterations', 0, 10000).step(1).listen(),
         connect: gui.add(noiz, 'connect').listen()
       }
 
@@ -121,25 +132,27 @@
       var w = canvas.width;
       var h = canvas.height;
 
-      ctx.globalAlpha = 0.05;
       ctx.globalCompositeOperation = 'lighter';
 
       var counter = 0;
       var noise;
 
-      var items = [];
+      var items = new Float32Array(noiz.agents * 4);
+      var colorInRgb;
+
+      var image = ctx.getImageData(0,0,w,h);
 
       function randomize() {
         noiz.color = {h: utils.random(0, 360), s: 1, v: 0.8};
-        noiz.agents = utils.random(100, 1000);
+        noiz.agents = utils.random(1000, 2000);
         noiz.noiseScaleX =  utils.random(0, 500);
         noiz.noiseScaleY = utils.random(0, 500);
         noiz.randomnessX = utils.random(0, 15);
         noiz.randomnessY = utils.random(0, 15);
         noiz.noiseStrength = utils.random(1, 10);
-        noiz.stepX = utils.random(1, 5);
-        noiz.stepY = utils.random(1, 5);
-        noiz.iterations = 500;
+        noiz.stepX = utils.random(1, 2) * 3;
+        noiz.stepY = utils.random(1, 2) * 3;
+        noiz.iterations = utils.random(500, 1000);
         noiz.connect = !!utils.random(0, 1);
 
         if (!noiz.stepX && !noiz.stepY) noiz.stepX = 1;
@@ -149,24 +162,38 @@
 
       function reset() {
         anim.stop();
-        var i = 0;
         counter = 0;
         ctx.clearRect(0, 0, w, h);
+        image = ctx.getImageData(0,0,w, h);
         items = [];
         setup();
         anim.start();
       }
 
       function setup() {
-        noise = new ClassicalNoise();
+        console.time('done');
+        noise = new ClassicalNoise(null, w, h);
+
+        ctx.globalAlpha = noiz.connect ? 0.08 : 0.2;
+
+        ci.fillStyle = 'hsl(' + noiz.color.h + ',100%, 80%)';
+        ci.clearRect(0,0,pImg.width,pImg.height);
+        ci.fillRect(0,0,pImg.width,pImg.height);
+        img.src = pImg.toDataURL("image/png");
+
         ctx.strokeStyle = 'hsl(' + noiz.color.h + ',100%, 80%)';
+        ctx.fillStyle = 'hsl(' + noiz.color.h + ',100%, 80%)';
+        //colorInRgb = hsvToRgb(noiz.color.h / 360, 0.4, 1);
+        
         var i = 0, particle, x, y, taken = [];
+        
         while (i < noiz.agents) {
           x = utils.random(0, w);
           y = utils.random(0, h);
-          if (!taken[x] || !taken[x][y]) {
-            taken[x] = taken[x] || [];
-            taken[x][y] = 1;
+          var px = y * w + x;
+          
+          if (!taken[px]) {
+            taken[px] = 1;
             particle = new Vector(x, y);
             particle.prev = particle.copy();
             items.push(particle);
@@ -176,12 +203,21 @@
       }
 
       function draw() {
-        var item, x, y, angle;
+        var item, x, y, angle = 0.5;
+
+        // var da = ctx.globalAlpha;
+        // var dr = colorInRgb[0];
+        // var dg = colorInRgb[1];
+        // var db = colorInRgb[2];
+        var scaleX = utils.random(noiz.noiseScaleX - noiz.randomnessX, noiz.noiseScaleX);
+        var scaleY = utils.random(noiz.noiseScaleY - noiz.randomnessY, noiz.noiseScaleY);
+
         for (var i = 0; i < items.length; i++) {
           item = items[i];
+
           angle = noise.noise(
-            item.x / utils.random(noiz.noiseScaleX - noiz.randomnessX, noiz.noiseScaleX),
-            item.y / utils.random(noiz.noiseScaleY - noiz.randomnessY, noiz.noiseScaleY),
+            item.x / scaleX,
+            item.y / scaleY,
             0) * noiz.noiseStrength;
 
           x = Math.cos(angle) * noiz.stepX;
@@ -192,10 +228,10 @@
 
           //Math.round(n) == n+(n<0?-0.5:+0.5)>>0
 
-          if (item.x > w + 10 ||
-              item.x < -10 ||
-              item.y > h + 10 ||
-              item.y < -10) {
+          if (item.x < -10 ||
+              item.y < -10 ||
+              item.x > w + 10 ||
+              item.y > h + 10) {
             item.x = utils.random(0, w);
             item.y = utils.random(0, h);
             item.prev.x = item.x;
@@ -208,6 +244,9 @@
           } else {
             ctx.moveTo(item.x, item.y);
             ctx.lineTo(item.x + 1, item.y + 1);
+            //ctx.fillRect(item.x, item.y, 1, 1);
+            //addToImageData(item.x, item.y, dr, dg, db, da, imageData);
+            //ctx.drawImage(img, item.x, item.y);
           }
 
           item.prev.x = item.x;
@@ -215,30 +254,62 @@
         }
       }
 
-      function drawFrames(n) {
-        var i = 0;
-        ctx.beginPath();
-        while (i < n) {
-          draw();
-          i++;
+      function addToImageData(x, y, dr, dg, db, da, imageData) {
+        var px = y * w * 4 + x * 4;
+
+        var sr = imageData[px] || dr;
+        var sg = imageData[px + 1] || dg;
+        var sb = imageData[px + 2] || db;
+        var sa = imageData[px + 3] / 255 || da;
+
+        var na = (sa + da * (1 - sa));
+        var nr = (sr * sa + dr * da * (1 - sa)) / na;
+        var ng = (sg * sa + dg * da * (1 - sa)) / na;
+        var nb = (sb * sa + db * da * (1 - sa)) / na;
+
+        imageData[px] = na < 0.9 ? sr : sr + da * nr;
+        imageData[px + 1] = na < 0.9 ? sg : sg + da * ng;
+        imageData[px + 2] = na < 0.9 ? sb : sb + da * nb;
+        imageData[px + 3] += 255 * da;
+      }
+
+      function hsvToRgb(h, s, v){
+        var r, g, b;
+    
+        var i = Math.floor(h * 6);
+        var f = h * 6 - i;
+        var p = v * (1 - s);
+        var q = v * (1 - f * s);
+        var t = v * (1 - (1 - f) * s);
+    
+        switch(i % 6){
+            case 0: r = v, g = t, b = p; break;
+            case 1: r = q, g = v, b = p; break;
+            case 2: r = p, g = v, b = t; break;
+            case 3: r = p, g = q, b = v; break;
+            case 4: r = t, g = p, b = v; break;
+            case 5: r = v, g = p, b = q; break;
         }
-        ctx.stroke();
+    
+        return [r * 255, g * 255, b * 255];
       }
 
       var anim = new AnimationFrame(function() {
-        drawFrames(noiz.speed); 
-        counter++;
+        ctx.beginPath();
+        draw();
+        ctx.closePath();
+        ctx.stroke();
 
         if (noiz.iterations && counter > noiz.iterations) {
           this.stop();
+          console.timeEnd('done');
         }
-      });
+
+        counter++;
+      }, true);
 
       randomize();
-
-      setTimeout(function() {
-        gui.close();
-      }, 2000);
+      anim.start();
 
       button.addEventListener('click', randomize);
 
