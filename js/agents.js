@@ -148,8 +148,14 @@
 
   document.body.addEventListener('keydown', drawWithKeyboard); 
 
+  document.body.addEventListener('touchstart', startDrawing, false);
+  document.body.addEventListener('touchend', stopDrawing, false);
+  document.body.addEventListener('touchcancel', stopDrawing, false);
+  document.body.addEventListener('touchleave', stopDrawing, false);
+
   function startDrawing(evt) {
     document.body.addEventListener('mousemove', doDraw); 
+    document.body.addEventListener('touchmove', doDraw, false);
     document.body.addEventListener('keydown', changeBrush); 
 
     center.x = evt.clientX + 10;
@@ -160,6 +166,7 @@
 
   function stopDrawing(evt) {
     document.body.removeEventListener('mousemove', doDraw); 
+    document.body.removeEventListener('touchmove', doDraw, false);
     document.body.removeEventListener('keydown', changeBrush); 
   }
 
