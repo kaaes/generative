@@ -154,12 +154,18 @@
   document.body.addEventListener('touchleave', stopDrawing, false);
 
   function startDrawing(evt) {
+    var evtData = evt;
+    
     document.body.addEventListener('mousemove', doDraw); 
     document.body.addEventListener('touchmove', doDraw, false);
     document.body.addEventListener('keydown', changeBrush); 
 
-    center.x = evt.clientX + 10;
-    center.y = evt.clientY + 10;
+    if (evt.changedTouches && evt.changedTouches[0]) {
+      evtData = evt.changedTouches[0];
+    }
+
+    center.x = evtData.clientX + 10;
+    center.y = evtData.clientY + 10;
 
     doDraw(evt);
   }
@@ -171,8 +177,14 @@
   }
 
   function doDraw(evt) {
-    mouse.x = evt.clientX;
-    mouse.y = evt.clientY;
+    var evtData = evt;
+
+    if (evt.changedTouches && evt.changedTouches[0]) {
+      evtData = evt.changedTouches[0];
+    }
+
+    mouse.x = evtData.clientX;
+    mouse.y = evtData.clientY;
   }
 
   function changeBrush(evt) {
